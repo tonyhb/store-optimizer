@@ -1,0 +1,177 @@
+<?xml version="1.0" ?>
+<!--
+/**
+ * A/B Testing Script
+ * ========================
+ *
+ * ## Synopsis
+ *
+ * This runs every time a user first visits the website to assign them to a 
+ * cohort. We then track each product view through an observer and show a
+ * template depending on their cohort.
+ *
+ */
+-->
+
+<config>
+	<modules>
+		<THB_ABTest>
+			<version>0.0.1</version>
+		</THB_ABTest>
+	</modules>
+
+	<crontab>
+		<jobs>
+			<abtest_check_end_dates>
+				<schedule>
+					<!-- Run on 00:00 to update 'is_active' for ab tests -->
+					<cron_expr>0 0 * * *</cron_expr>
+				</schedule>
+				<run>
+					<model>abtest/logic::cron</model>
+				</run>
+			</abtest_check_end_dates>
+		</jobs>
+	</crontab>
+
+	<global>
+		<models>
+
+			<!-- Background/definitions -->
+			<abtest>
+				<class>THB_ABTest_Model</class>
+				<resourceModel>abtest_mysql4</resourceModel>
+			</abtest>
+
+			<!-- Database interaction models -->
+			<abtest_mysql4>
+				<class>THB_ABTest_Model_Mysql4</class>
+				<entities>
+					<test>
+						<table>abtest_test</table>
+					</test>
+					<variation>
+						<table>abtest_variation</table>
+					</variation>
+					<conversion>
+						<table>abtest_conversion</table>
+					</conversion>
+				</entities>
+			</abtest_mysql4>
+		</models>
+
+		<!-- Connection information -->
+		<resources>
+			<abtest_setup>
+				<setup>
+					<module>THB_ABTest</module>
+					<class>THB_ABTest_Model_Resource_Mysql4_Setup</class>
+				</setup>
+			</abtest_setup>
+
+			<abtest_write>
+				<connection>
+					<use>core_write</use>
+				</connection>
+			</abtest_write>
+			<abtest_read>
+				<connection>
+					<use>core_read</use>
+				</connection>
+			</abtest_read>
+		</resources>
+
+		<helpers>
+			<abtest>
+				<class>THB_ABTest_Helper</class>
+			</abtest>
+		</helpers>
+
+		<blocks>
+			<abtest>
+				<class>THB_ABTest_Block</class>
+			</abtest>
+		</blocks>
+	</global>
+
+	<adminhtml>
+		<menu>
+			<catalog>
+				<children>
+					<abtest translate="title" module="abtest">
+						<title>Manage A/B Tests</title>
+						<action>adminhtml/abtest</action>
+						<sort_order>16</sort_order>
+					</abtest>
+				</children>
+			</catalog>
+		</menu>
+
+		<layout>
+			<updates>
+				<abtest>
+					<file>thb-abtest.xml</file>
+				</abtest>
+			</updates>
+		</layout>
+
+		<!-- For new config panels we need to add an ACL role. -->
+		<!--
+		<acl>
+			<resources>
+				<admin>
+					<children>
+						<system>
+							<children>
+								<config>
+									<children>
+										<abtest>
+											<title>ProPOS abtest Module Settings</title>
+										</abtest>
+									</children>
+								</config>
+							</children>
+						</system>
+					</children>
+				</admin>
+			</resources>
+		</acl>
+		-->
+	</adminhtml>
+
+	<admin>
+		<routers>
+			<adminhtml>
+				<use>admin</use>
+				<args>
+					<modules>
+						<THB_ABTest before="Mage_Adminhtml">THB_ABTest_Admin</THB_ABTest>
+					</modules>
+				</args>
+			</adminhtml>
+		</routers>
+	</admin>
+
+	<frontend>
+		<events>
+			<catalog_controller_product_view>
+				<observers>
+					<abtest>
+						<class>abtest/observer</class>
+						<method>product_view</method>
+					</abtest>
+				</observers>
+			</catalog_controller_product_view>
+
+			<checkout_onepage_controller_success_action>
+				<observers>
+					<abtest>
+						<type>singleton</type>
+						<class>abtest/observer</class>
+						<method>onepage_success</method>
+					</abtest>
+				</observers>
+			</checkout_onepage_controller_success_action>
+		</events>
+	</frontend>
+</config>

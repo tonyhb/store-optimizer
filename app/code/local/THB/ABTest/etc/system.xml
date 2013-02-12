@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+<!--
+/**
+ * Provides settings for the magento configuration panel. This saves both the 
+ * archive directory for past exports and the watch folder for automatic
+ * uploads.
+ *
+ */
+-->
+
+<config>
+	<sections>
+		<import translate="label" module="import">
+			<label>ProPOS Import Settings</label>
+			<tab>catalog</tab>
+			<sort_order>100</sort_order>
+
+			<show_in_default>1</show_in_default>
+			<show_in_website>0</show_in_website>
+			<show_in_store>0</show_in_store>
+
+			<groups>
+				<directory translate="label">
+					<label>Directory settings</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>1</sort_order>
+
+					<show_in_default>1</show_in_default>
+					<show_in_website>0</show_in_website>
+					<show_in_store>0</show_in_store>
+
+					<fields>
+						<archive_dir translate="label">
+							<label>Archive directory</label>
+							<frontend_type>text</frontend_type>
+							<sort_order>1</sort_order>
+
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</archive_dir>
+
+						<watch_dir translate="label">
+							<label>Auto-start watch directory</label>
+							<frontend_type>text</frontend_type>
+							<sort_order>2</sort_order>
+
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</watch_dir>
+					</fields>
+				</directory>
+			</groups>
+		</import>
+	</sections>
+</config>
