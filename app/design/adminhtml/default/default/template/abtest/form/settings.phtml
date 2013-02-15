@@ -1,0 +1,80 @@
+<div class="entry-edit-head">
+    <h4 class="icon-head head-edit-form fieldset-legend">Date settings</h4>
+    <div class="form-buttons"></div>
+</div>
+<div class="form-buttons"></div>
+<div class="fieldset " id="date_fieldset">
+    <div class="hor-scroll">
+        <table cellspacing="0" class="form-list">
+        <tbody>
+            <tr>
+                <td class="label"><label for="el_start_date">Start date <span class="required">*</span></label></td>
+                <td class="value">
+                    <input name="start_date" id="el_start_date" value="" style="width: 200px" type="text" class=" required-entry input-text"> <img src="http://magento.local/skin/adminhtml/default/default/images/grid-cal.gif" alt="" class="v-middle" id="el_start_date_trig" title="Select Date" style="">
+                    <script type="text/javascript">
+                    //<![CDATA[
+                        Calendar.setup({
+                            inputField: "el_start_date",
+                            ifFormat: "%e/%m/%Y",
+                            showsTime: true,
+                            button: "el_start_date_trig",
+                            align: "Bl",
+                            singleClick : true
+                        });
+                    //]]>
+                    </script>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_end_date">End date</label></td>
+                <td class="value">
+                    <input name="end_date" id="el_end_date" value="" style="width: 200px" type="text" class=" input-text"> <img src="http://magento.local/skin/adminhtml/default/default/images/grid-cal.gif" alt="" class="v-middle" id="el_end_date_trig" title="Select Date" style="">
+                    <script type="text/javascript">
+                    //<![CDATA[
+                        Calendar.setup({
+                            inputField: "el_end_date",
+                            ifFormat: "%e/%m/%Y",
+                            showsTime: true,
+                            button: "el_end_date_trig",
+                            align: "Bl",
+                            singleClick : true
+                        });
+                    //]]>
+                    </script>
+                    <p class="note" id="note_el_end_date"><span>Leave blank to leave running indefinitely</span></p>
+                </td>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="entry-edit-head">
+    <h4 class="icon-head head-edit-form fieldset-legend">A/B Test Settings</h4>
+    <div class="form-buttons"></div>
+</div>
+<div class="fieldset " id="observer_fieldset">
+    <div class="hor-scroll">
+        <table cellspacing="0" class="form-list">
+        <tbody>
+            <tr>
+                <td class="label"><label for="el_target_observer">Test page <span class="required">*</span></label></td>
+                <td class="value">
+                    <select id="el_target_observer" name="test_observer" style="width: 300px" class=" required-entry select">
+                        <option value="catalog_controller_product_view">Product page</option>
+                        <option value="catalog_controller_category_init_before">Category page</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_conversion_observer">Conversion action <span class="required">*</span></label></td>
+                <td class="value">
+                    <select id="el_conversion_observer" name="conversion_observer" style="width: 300px" class=" required-entry select">
+                        <option value="checkout_onepage_controller_success_action">Completed checkout/purchased</option>
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+</div>

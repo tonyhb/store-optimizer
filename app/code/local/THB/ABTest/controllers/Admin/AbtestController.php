@@ -19,7 +19,8 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
     public function newAction()
     {
         $this->_init()
-            ->_addContent($this->getLayout()->createBlock('abtest/adminhtml_form_container'))
+            ->_addLeft($this->getLayout()->createBlock('abtest/adminhtml_tabs'))
+            ->_addContent($this->getLayout()->createBlock('abtest/adminhtml_form'))
             ->renderLayout();
     }
 
