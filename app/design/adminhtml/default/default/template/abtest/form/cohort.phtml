@@ -1,0 +1,28 @@
+<div class="entry-edit-head">
+
+    <?php if ($this->getCohort() == 'Control'): ?>
+        <h4 class="icon-head head-edit-form fieldset-legend">Control</h4>
+    <?php else: ?>
+        <h4 class="icon-head head-edit-form fieldset-legend">Variant <?php echo $this->getCohort() ?></h4>
+    <?php endif; ?>
+
+    <div class="form-buttons"></div>
+
+</div>
+<div class="form-buttons"></div>
+<div class="fieldset " id="date_fieldset">
+    <div class="hor-scroll">
+        <table cellspacing="0" class="form-list" style="width:100%">
+        <tbody>
+            <tr>
+                <td class="value"><p>Layout Update XML<?php if ($this->getCohort() == 'Control'): ?> (typically left blank for the control)<?php endif; ?>:</p></td>
+            </tr>
+            <tr>
+                <td class="value">
+                    <textarea name="cohort_<?php echo $this->getCohort() ?>_xml" id="cohort_<?php echo $this->getCohort() ?>_xml" value="" style="width: 99.5%;font-family:monospace; height: 25em" class=" required-entry input-text"></textarea>
+                </td>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+</div>

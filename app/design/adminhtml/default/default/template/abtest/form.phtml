@@ -1,15 +1,117 @@
 <div>
     <div class="content-header">
         <h3 class="icon-head head-adminhtml">New A/B Test</h3>
-        <p class="form-buttons"><button id="id_c3baf48f684a329560174fea420ad7bc" title="Back" type="button" class="scalable back" onclick="setLocation('http://magento.local/index.php/admin/abtest/index/key/900b729c6ca2f0011740710b448585d8/')" style=""><span><span><span>Back</span></span></span></button><button id="id_45be7cf72a01844b81e89979703c4e21" title="Reset" type="button" class="scalable " onclick="setLocation(window.location.href)" style=""><span><span><span>Reset</span></span></span></button><button id="id_90b83aa2d5c46f34e8d9f27068f690cc" title="Save"
-type="button" class="scalable save" onclick="editForm.submit();" style=""><span><span><span>Save</span></span></span></button></p>
+        <p class="form-buttons">
+        <button id="id_c3baf48f684a329560174fea420ad7bc" title="Back" type="button" class="scalable back" onclick="setLocation('<?php echo $this->getUrl('*/*/index', array('_current'=>true, 'back'=>null)) ?>')" style=""><span><span><span>Back</span></span></span></button>
+            <button id="id_45be7cf72a01844b81e89979703c4e21" title="Reset" type="button" class="scalable " onclick="setLocation(window.location.href)" style=""><span><span><span>Reset</span></span></span></button>
+            <button id="id_90b83aa2d5c46f34e8d9f27068f690cc" title="Save" type="button" class="scalable save" onclick="editForm.submit();" style=""><span><span><span>Save</span></span></span></button>
+        </p>
     </div>
     <div class="entry-edit">
-        <form id="abtest_form" action="http://magento.local/index.php/admin/abtest/create/key/0056294c0d1c7ae862244114d813c671/" method="post" enctype="multipart/form-data">
+        <form id="abtest_form" action="<?php echo $this->getUrl('*/*/save', array('_current'=>true, 'back'=>null)); ?>" method="post" enctype="multipart/form-data">
             <div><input name="form_key" type="hidden" value="hqwmdrp1ZQqMCpGc"></div>
         </form>
     </div>
     <script type="text/javascript">
         editForm = new varienForm('edit_form', '');
+        delete window.console;
+        (function() {
+            var abTest = {
+                cohorts: 2,
+                controlTraffic: 70,
+
+                init: function() {
+                    // Hide variant A/B/C tabs
+                    $('abtest_form_tabs_cohort_3').hide();
+                    $('abtest_form_tabs_cohort_4').hide();
+                    $('abtest_form_tabs_cohort_5').hide();
+                    $('el_cohorts').observe('change', abTest.updateCohortNumbers);
+                    // Debounce updating for 50ms, so we can get the correct 
+                    // value
+                    $('el_control_traffic').observe('keydown', function() {
+                        window.setTimeout(abTest.updateControlTraffic, 50);
+                    });
+
+                    // Only update the input value after blurring so people can 
+                    // delete the input contents (otherwise it'd auto reset to 
+                    // 70 after deleting everything)
+                    $('el_control_traffic').observe('blur', function() {
+                        $('el_control_traffic').value = abTest.controlTraffic;
+                    });
+
+                    $('split_traffic_evenly').observe('click', abTest.splitControlTrafficEvenly);
+                },
+
+                // Shows the right amount of variant tabs on the left hand side.
+                updateCohortNumbers: function() {
+                    var i = 1, select_box = $('el_cohorts');
+
+                    // Update our settings
+                    abTest.cohorts = select_box.value;
+
+                    // Show the relative number of tabs
+                    while (i <= 5) {
+                        if (i <= select_box.value) {
+                            $('abtest_form_tabs_cohort_' + i).style.display = '';
+                        } else {
+                            $('abtest_form_tabs_cohort_' + i).style.display = 'none';
+                        }
+                        i++;
+                    }
+
+                    abTest.updateControlTrafficNote();
+                },
+
+                splitControlTrafficEvenly: function() {
+                    traffic = 100 / abTest.cohorts;
+                    traffic = Math.round(traffic * 100) / 100;
+
+                    abTest.controlTraffic = traffic;
+
+                    abTest.updateControlTrafficNote();
+                    $('el_control_traffic').value = abTest.controlTraffic;
+                },
+
+                // Updates the abTest.controlTraffic setting, after sanitising 
+                // for a numeric input between 1 and 99
+                updateControlTraffic: function() {
+                    var input = $('el_control_traffic'), value = 70;
+
+                    value = input.value.match(/([0-9.]+)/);
+
+                    if (value === null) {
+                        value = 70;
+                    } else {
+                        // Prototype adds some weird shit, so get the first number
+                        value = value[0];
+                    }
+
+                    if (value >= 100 || value <= 0) {
+                        value = 70;
+                    }
+
+                    abTest.controlTraffic = value;
+
+                    abTest.updateControlTrafficNote();
+                },
+
+                // Updates the note underneath control traffic
+                updateControlTrafficNote: function() {
+                    var traffic = 0;
+
+                    if (abTest.cohorts == 2) {
+                        traffic = (100 - abTest.controlTraffic);
+                        $('note_el_control_traffic').innerHTML = "<span>The variant gets <b>" + traffic + "%</b> of the traffic</span>";
+                    } else {
+                        // Could be a recurring decimal
+                        traffic = ((100 - abTest.controlTraffic) / (abTest.cohorts - 1));
+                        traffic = Math.round(traffic * 100) / 100;
+                        $('note_el_control_traffic').innerHTML = "<span>Each variant gets <b>" + traffic + "%</b> of the traffic</span>";
+                    }
+                }
+            };
+
+            abTest.init();
+        })();
     </script>
 </div>

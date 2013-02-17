@@ -29,12 +29,42 @@ class THB_ABTest_Block_Adminhtml_Tabs extends Mage_Adminhtml_Block_Widget_Tabs
             'active'  => true
         ));
 
-        $this->addTab('cohort', array(
-            'label'   => Mage::helper('core/data')->__('Cohorts'),
-            'title'   => Mage::helper('core/data')->__('Cohorts'),
-            # 'content' => $this->getLayout()->createBlock('abtest/adminhtml_form_container')->toHtml(),
-            'content' => $this->getLayout()->createBlock('abtest/adminhtml_form_settings')->toHtml(),
+        $this->addTab('cohort_1', array(
+            'label'   => Mage::helper('core/data')->__('Control'),
+            'title'   => Mage::helper('core/data')->__('Control'),
+            'content' => $this->getLayout()->createBlock('abtest/adminhtml_form_cohort')->setCohort('Control')->toHtml(),
             'active'  => false
+        ));
+
+        $this->addTab('cohort_2', array(
+            'label'   => Mage::helper('core/data')->__('Variant A'),
+            'title'   => Mage::helper('core/data')->__('Variant A'),
+            'content' => $this->getLayout()->createBlock('abtest/adminhtml_form_cohort')->setCohort('A')->toHtml(),
+            'active'  => false
+        ));
+
+        $this->addTab('cohort_3', array(
+            'label'   => Mage::helper('core/data')->__('Variant B'),
+            'title'   => Mage::helper('core/data')->__('Variant B'),
+            'content' => $this->getLayout()->createBlock('abtest/adminhtml_form_cohort')->setCohort('B')->toHtml(),
+            'active'  => false,
+            'style'   => 'display: none',
+        ));
+
+        $this->addTab('cohort_4', array(
+            'label'   => Mage::helper('core/data')->__('Variant C'),
+            'title'   => Mage::helper('core/data')->__('Variant C'),
+            'content' => $this->getLayout()->createBlock('abtest/adminhtml_form_cohort')->setCohort('C')->toHtml(),
+            'active'  => false,
+            'style'   => 'display: none',
+        ));
+
+        $this->addTab('cohort_5', array(
+            'label'   => Mage::helper('core/data')->__('Variant D'),
+            'title'   => Mage::helper('core/data')->__('Variant D'),
+            'content' => $this->getLayout()->createBlock('abtest/adminhtml_form_cohort')->setCohort('D')->toHtml(),
+            'active'  => false,
+            'style'   => 'display: none',
         ));
 
         return parent::_beforeToHtml();

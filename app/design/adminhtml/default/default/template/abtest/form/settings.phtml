@@ -70,8 +70,26 @@
                 <td class="label"><label for="el_conversion_observer">Conversion action <span class="required">*</span></label></td>
                 <td class="value">
                     <select id="el_conversion_observer" name="conversion_observer" style="width: 300px" class=" required-entry select">
-                        <option value="checkout_onepage_controller_success_action">Completed checkout/purchased</option>
+                        <option value="checkout_onepage_controller_success_action">Completed checkout</option>
                     </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_cohorts">Variants <span class="required">*</span></label></td>
+                <td class="value">
+                    <select id="el_cohorts" name="cohorts" style="width: 300px" class=" required-entry select">
+                        <option value="2">1</option>
+                        <option value="3">2</option>
+                        <option value="4">3</option>
+                        <option value="5">4</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_control_traffic">Control traffic percentage <span class="required">*</span></label></td>
+                <td class="value">
+                    <input type="text" name="el_control_traffic" id="el_control_traffic" value="70" class="required-entry input-text" style="width:2.5em" /> % &nbsp;<a href="#" id="split_traffic_evenly">(split evenly)</a>
+                    <p class="note" id="note_el_control_traffic"><span>The variant gets <b>30%</b> of the traffic</span></p>
                 </td>
             </tr>
         </tbody>
