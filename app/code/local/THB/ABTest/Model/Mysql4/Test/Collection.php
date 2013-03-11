@@ -7,4 +7,3 @@ class THB_ABTest_Model_Mysql4_Test_Collection extends Mage_Core_Model_Mysql4_Col
     }
 
 }
-

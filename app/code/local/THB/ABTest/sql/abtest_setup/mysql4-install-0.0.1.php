@@ -23,7 +23,7 @@ $installer->run("
     CREATE TABLE `{$installer->getTable('abtest/variation')}` (
         `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
         `test_id` int(11) unsigned NOT NULL,
-        `is_default_template` tinyint(1) NOT NULL,
+        `is_control` tinyint(1) NOT NULL,
         `layout_update` mediumtext,
         `split_percentage` tinyint(3) unsigned DEFAULT NULL,
         `visitors` int(11) unsigned DEFAULT '0',
@@ -33,7 +33,6 @@ $installer->run("
         `is_winner` tinyint(1) DEFAULT NULL,
         PRIMARY KEY (`id`),
         KEY `abtest_id` (`test_id`),
-        CONSTRAINT `abtest_id` FOREIGN KEY (`test_id`) REFERENCES `abtest` (`id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
 
     CREATE TABLE `{$installer->getTable('abtest/conversion')}` (
@@ -43,8 +42,6 @@ $installer->run("
         `value` decimal(12,4) DEFAULT NULL,
         KEY `variant_id` (`variation_id`),
         KEY `test_id` (`test_id`),
-        CONSTRAINT `test_id` FOREIGN KEY (`test_id`) REFERENCES `abtest` (`id`),
-        CONSTRAINT `variant_id` FOREIGN KEY (`variation_id`) REFERENCES `abtest_variation` (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ");
 

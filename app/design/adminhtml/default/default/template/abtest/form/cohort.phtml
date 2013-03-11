@@ -1,16 +1,17 @@
 <div class="entry-edit-head">
-
     <?php if ($this->getCohort() == 'Control'): ?>
         <h4 class="icon-head head-edit-form fieldset-legend">Control</h4>
+        <input type="hidden" name="cohort[<?php echo $this->getCohort(); ?>][is_control]" value="1" />
     <?php else: ?>
         <h4 class="icon-head head-edit-form fieldset-legend">Variant <?php echo $this->getCohort() ?></h4>
+        <input type="hidden" name="cohort[<?php echo $this->getCohort(); ?>][is_control]" value="0" />
     <?php endif; ?>
 
-    <div class="form-buttons"></div>
+    <input type="hidden" name="cohort[<?php echo $this->getCohort(); ?>][split_percentage]" id="cohort_<?php echo $this->getCohort(); ?>_percentage" value="<?php if($this->getCohort() == 'Control') echo "70"; if ($this->getCohort() == 'A') echo "30"; ?>" />
 
 </div>
 <div class="form-buttons"></div>
-<div class="fieldset " id="date_fieldset">
+<div class="fieldset" id="date_fieldset">
     <div class="hor-scroll">
         <table cellspacing="0" class="form-list" style="width:100%">
         <tbody>
@@ -19,7 +20,7 @@
             </tr>
             <tr>
                 <td class="value">
-                    <textarea name="cohort_<?php echo $this->getCohort() ?>_xml" id="cohort_<?php echo $this->getCohort() ?>_xml" value="" style="width: 99.5%;font-family:monospace; height: 25em" class=" required-entry input-text"></textarea>
+                    <textarea name="cohort[<?php echo $this->getCohort(); ?>][layout_update]" id="cohort_<?php echo $this->getCohort() ?>_xml" value="" style="width: 99.5%;font-family:monospace; height: 25em" class="input-text"></textarea>
                 </td>
             </tr>
         </tbody>

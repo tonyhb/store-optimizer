@@ -4,16 +4,16 @@
         <p class="form-buttons">
         <button id="id_c3baf48f684a329560174fea420ad7bc" title="Back" type="button" class="scalable back" onclick="setLocation('<?php echo $this->getUrl('*/*/index', array('_current'=>true, 'back'=>null)) ?>')" style=""><span><span><span>Back</span></span></span></button>
             <button id="id_45be7cf72a01844b81e89979703c4e21" title="Reset" type="button" class="scalable " onclick="setLocation(window.location.href)" style=""><span><span><span>Reset</span></span></span></button>
-            <button id="id_90b83aa2d5c46f34e8d9f27068f690cc" title="Save" type="button" class="scalable save" onclick="editForm.submit();" style=""><span><span><span>Save</span></span></span></button>
+            <button id="id_90b83aa2d5c46f34e8d9f27068f690cc" title="Save" type="button" class="scalable save" onclick="abTestForm.submit();" style=""><span><span><span>Save</span></span></span></button>
         </p>
     </div>
     <div class="entry-edit">
         <form id="abtest_form" action="<?php echo $this->getUrl('*/*/save', array('_current'=>true, 'back'=>null)); ?>" method="post" enctype="multipart/form-data">
-            <div><input name="form_key" type="hidden" value="hqwmdrp1ZQqMCpGc"></div>
+            <?php echo $this->getBlockHtml('formkey')?>
         </form>
     </div>
     <script type="text/javascript">
-        editForm = new varienForm('edit_form', '');
+        abTestForm = new varienForm('abtest_form', '');
         delete window.console;
         (function() {
             var abTest = {
@@ -63,13 +63,13 @@
                 },
 
                 splitControlTrafficEvenly: function() {
-                    traffic = 100 / abTest.cohorts;
+                    var traffic = 100 / abTest.cohorts;
                     traffic = Math.round(traffic * 100) / 100;
 
                     abTest.controlTraffic = traffic;
+                    $('el_control_traffic').value = abTest.controlTraffic;
 
                     abTest.updateControlTrafficNote();
-                    $('el_control_traffic').value = abTest.controlTraffic;
                 },
 
                 // Updates the abTest.controlTraffic setting, after sanitising 
@@ -95,9 +95,10 @@
                     abTest.updateControlTrafficNote();
                 },
 
-                // Updates the note underneath control traffic
+                // Updates the note underneath control traffic, and also updates 
+                // the split percentage input hidden fields
                 updateControlTrafficNote: function() {
-                    var traffic = 0;
+                    var traffic = 0, i = 0, cohorts = ['A', 'B', 'C', 'D'];
 
                     if (abTest.cohorts == 2) {
                         traffic = (100 - abTest.controlTraffic);
@@ -107,6 +108,14 @@
                         traffic = ((100 - abTest.controlTraffic) / (abTest.cohorts - 1));
                         traffic = Math.round(traffic * 100) / 100;
                         $('note_el_control_traffic').innerHTML = "<span>Each variant gets <b>" + traffic + "%</b> of the traffic</span>";
+                    }
+
+                    $('cohort_Control_percentage').value = abTest.controlTraffic;
+
+                    // Loop through variant a, b, c and d - the abTest.cohorts 
+                    // includes control so use - 1
+                    for (i = 0; i < (abTest.cohorts - 1); i++) {
+                        $('cohort_' + cohorts[i] + '_percentage').value = traffic;
                     }
                 }
             };

@@ -48,7 +48,7 @@ class THB_ABTest_Model_Observer {
     protected $_sql_queries = '';
 
     /**
-     * Initialises the model by loading all current A/B tests (and variants for 
+     * Initialises the model by loading all current A/B tests (and variations for 
      * the tests) and splitting visitors into cohorts.
      *
      * @uses THB_ABTest_Model_Observer::_split_user_into_cohorts()
@@ -63,7 +63,9 @@ class THB_ABTest_Model_Observer {
 
         # Find out if we've got any tests running.
         $read = Mage::getSingleton('core/resource')->getConnection('core/read');
-        $all_tests = $read->fetchAll('SELECT * FROM abtest WHERE (end_date >= '.date("Y-m-d").' OR end_date IS NULL) AND is_active = 1 ORDER BY id ASC');
+        $table = Mage::getSingleton('core/resource')->getTableName('abtest/test');
+        $all_tests = $read->fetchAll('SELECT * FROM '.$table.' WHERE (end_date >= '.date("Y-m-d").' OR end_date IS NULL) AND is_active = 1 ORDER BY id ASC');
+
 
         if (empty($all_tests))
             return;
@@ -90,19 +92,20 @@ class THB_ABTest_Model_Observer {
         }
 
         # Find all variations
-        $variations = $read->fetchAll('SELECT * FROM abtest_variation WHERE test_id IN ('.implode(',', $test_ids).') ORDER BY test_id ASC');
+        $table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+        $variations = $read->fetchAll('SELECT * FROM '.$table.' WHERE test_id IN ('.implode(',', $test_ids).') ORDER BY test_id ASC');
 
         # Add the variations to the tests in the active tests property
-        foreach ($variations as $variant)
+        foreach ($variations as $variation)
         {
-            self::$_active_tests[$variant['test_id']]['variations'][] = $variant;
+            self::$_active_tests[$variation['test_id']]['variations'][] = $variation;
         }
 
         $this->_split_user_into_cohorts();
     }
 
     /**
-     * Returns an array of all active tests and their variants.
+     * Returns an array of all active tests and their variation.
      *
      * @since 0.0.1
      *
@@ -168,6 +171,9 @@ class THB_ABTest_Model_Observer {
             # to save it
             $_session_data_has_changed = TRUE;
 
+            # We need to ge tthe table name that we're updating
+            $table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+
             $seed = mt_rand(1,100);
 
             # We need to loop through each variation to get the cumulative 
@@ -177,14 +183,14 @@ class THB_ABTest_Model_Observer {
             #     $seed = 92, Version A: 50%, Version b: 50%:
             #       We're in B (92 <= (50 + 50))
             $current_percentage = 0;
-            foreach ($data['variations'] as $variant)
+            foreach ($data['variations'] as $variation)
             {
-                $current_percentage += $variant['split_percentage'];
+                $current_percentage += $variation['split_percentage'];
 
                 if ($seed <= $current_percentage)
                 {
-                    $cohort_data[$test_id] = $variant['id'];
-                    $this->_sql_queries .= ' UPDATE `abtest_variation` SET visitors = visitors + 1 WHERE id = '.$variant['id'].'; ';
+                    $cohort_data[$test_id] = $variation['id'];
+                    $this->_sql_queries .= ' UPDATE `'.$table.'` SET visitors = visitors + 1 WHERE id = '.$variation['id'].'; ';
                     break;
                 }
             }
@@ -205,45 +211,83 @@ class THB_ABTest_Model_Observer {
     }
 
     /**
-     * Returns variant information for a test. The test is found by passing the 
+     * Returns variation information for a test. The test is found by passing the 
      * test's observer name. The data returned is in the format:
-     *
-     * array(
-     *   'id'                  => $variant_id,
-     *   'test_id'             => $test_id,
-     *   'is_default_template' => bool,  // Whether this is the standard template
-     *   'layout_update'       => '...', // XML updates if not default template
-     *   'split_percentage'    => int,   // Percentage of people in this cohort
-     *   'visitors'            => int,   // Number of visitors in $variant_id
-     *   'views'               => int,   // Number of views in $variant_id
-     *   'conversions'         => int,   // Number of conversions from $variant_id
-     *   'total_value'         => float, // Total sales value from $variant_id,
-     *   'is_winner'           => bool,
-     * );
      *
      * @since 0.0.1
      *
      * @param  string   current test's observer name
-     * @return array    array of variant information
+     * @return array    array of variation information
      */
-    public function get_variant($observer_target)
+    public function get_variation_from_target($observer_name)
+    {
+        if ($variation = $this->_get_variation($observer_name, 'observer_target'))
+        {
+            # Get the table name for variation before we loop
+            $table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+
+            $this->_sql_queries .= ' UPDATE `'.$table.'` SET views = views + 1 WHERE id = '.$variation['id'].'; ';
+
+            return $variation;
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * Gets a variation from a conversion observer.
+     *
+     * @since 0.0.1
+     *
+     * @param  string   current test's observer name
+     * @return array    array of variation information
+     */
+    public function get_variation_from_conversion($observer_name)
+    {
+        return $this->_get_variation($observer_name, 'observer_conversion');
+    }
+
+    /**
+     * Returns variation information for a test. The test is found by passing the 
+     * test's observer name and the type of observer you're looking for (either
+     * a test page or a conversion event). The data returned is in the format:
+     *
+     * array(
+     *   'id'               => $variation_id,
+     *   'test_id'          => $test_id,
+     *   'is_control'       => bool,  // Whether this is the standard template
+     *   'layout_update'    => '...', // XML updates if not default template
+     *   'split_percentage' => int,   // Percentage of people in this cohort
+     *   'visitors'         => int,   // Number of visitors in $variation
+     *   'views'            => int,   // Number of views in $variation_id
+     *   'conversions'      => int,   // Number of conversions from $variation_id
+     *   'total_value'      => float, // Total sales value from $variation_id,
+     *   'is_winner'        => bool,
+     * );
+     *
+     * @since 0.0.1
+     *
+     * @param string  The event name to find a variation for
+     * @param enum    Either observer_target or observer_coversion, depending on 
+     *                whether you're looking for a variation from a conversion 
+     *                or a test page
+     * @return array
+     */
+    protected function _get_variation($observer_name, $source = 'observer_target')
     {
         $session = Mage::getSingleton('core/session', array('name' => 'frontend'));
 
         foreach (self::$_active_tests as $test)
         {
-            if ($test['observer_target'] == $observer_target)
+            if ($test[$source] == $observer_name)
             {
                 $cohort_id = $session['cohort_data'][$test['id']];
 
-                foreach ($test['variations'] as $variant)
+                foreach ($test['variations'] as $variation)
                 {
-                    if ($variant['id'] == $cohort_id)
+                    if ($variation['id'] == $cohort_id)
                     {
-                        # This has a view: add an SQL query to the query log 
-                        # to run
-                        $this->_sql_queries .= ' UPDATE abtest_variation SET views = views + 1 WHERE id = '.$variant['id'].'; ';
-                        return $variant;
+                        return $variation;
                     }
                 }
             }
@@ -268,9 +312,9 @@ class THB_ABTest_Model_Observer {
         if ( ! self::$_is_running)
             return;
 
-        $cohort = $this->get_variant('catalog_controller_product_view');
+        $cohort = $this->get_variation_from_target('catalog_controller_product_view');
 
-        if ($cohort && ! $cohort['is_default_template'])
+        if ($cohort && $cohort['layout_update'])
         {
             $custom_updates = $observer->getProduct()->getCustomLayoutUpdate();
             $observer->getProduct()->setCustomLayoutUpdate($custom_updates.$cohort['layout_update']);
@@ -292,7 +336,7 @@ class THB_ABTest_Model_Observer {
         if ( ! self::$_is_running)
             return;
 
-        $cohort = $this->get_variant('catalog_controller_product_view');
+        $cohort = $this->get_variation_from_conversion('checkout_onepage_controller_success_action');
 
         if (Mage::getConfig() !== NULL)
         {
@@ -316,12 +360,19 @@ class THB_ABTest_Model_Observer {
             $order = $read->fetchRow('SELECT entity_id, grand_total FROM sales_flat_order WHERE increment_id = '.$incrementId);
 
             $write = Mage::getSingleton('core/resource')->getConnection('core/write');
-            $write->insert('abtest_variation_order', array(
+
+            # Add a conversion row in our conversion table
+            $table = Mage::getSingleton('core/resource')->getTableName('abtest/conversion');
+            $write->insert($table, array(
+                    'test_id'    => $cohort['test_id'],
                     'order_id'   => $order['entity_id'],
-                    'variant_id' => $cohort['id'],
+                    'variation_id' => $cohort['id'],
+                    'value'      => $order['grand_total'],
                 ));
 
-            $write->query('UPDATE `abtest_variation` SET conversions = conversions + 1, total_value = '.
+            # Update the variation information
+            $table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+            $write->query('UPDATE `'.$table.'` SET conversions = conversions + 1, total_value = '.
                 ($cohort['total_value'] + $order['grand_total']).
                 ' WHERE id = '.$cohort['id']);
         }
@@ -329,6 +380,45 @@ class THB_ABTest_Model_Observer {
             # This is observer is run up to 6 times, and this is an error thrown by a unique constraint in the DB.
             # @TODO find out why it's run 6 times.
         }
+    }
+
+    /**
+     * Registers a conversion when a user adds a product to their cart.
+     *
+     * @since 0.0.1
+     *
+     * @return void
+     */
+    public function add_product($observer)
+    {
+        # This runs every time a product is added, regardless of whether or not 
+        # an AB test is running.
+        if ( ! self::$_is_running)
+            return;
+
+        $cohort = $this->get_variation_from_conversion($observer->getEvent()->getName());
+
+        # Get the price of our item. We don't use the product's price or final 
+        # price because this may be a bundled or configurable product: these 
+        # prices are stored in the custom option's buy request price.
+        $buy_request = $observer->getEvent()->getProduct()->getCustomOptions();
+        $price = $buy_request['info_buyRequest']->getItem()->getPrice() * $observer->getEvent()->getProduct()->getQty();
+
+        # Get our table name for variations and update the row information
+        $table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+        $write = Mage::getSingleton('core/resource')->getConnection('core/write');
+        $write->query('UPDATE `'.$table.'` SET conversions = conversions + 1, total_value = '.
+            ($cohort['total_value'] + $price).
+            ' WHERE id = '.$cohort['id']);
+
+        # Add a conversion row
+        $table = Mage::getSingleton('core/resource')->getTableName('abtest/conversion');
+        $write->insert($table, array(
+                'test_id'      => $cohort['test_id'],
+                'variation_id' => $cohort['id'],
+                'value'        => $price,
+                'created_at'   => date('Y-m-d H:i:s'),
+            ));
     }
 
     /**

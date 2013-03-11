@@ -8,9 +8,21 @@
         <table cellspacing="0" class="form-list">
         <tbody>
             <tr>
+                <td class="label"><label for="el_test_name">Name <span class="required">*</span></label></td>
+                <td class="value">
+                    <input type="text" name="test[name]" id="el_test_name" value="" class="required-entry input-text" />
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_test_description">Description</label></td>
+                <td class="value">
+                    <textarea name="test[description]" id="el_test_description" value="" style="height: 5em" class="input-text"></textarea>
+                </td>
+            </tr>
+            <tr>
                 <td class="label"><label for="el_start_date">Start date <span class="required">*</span></label></td>
                 <td class="value">
-                    <input name="start_date" id="el_start_date" value="" style="width: 200px" type="text" class=" required-entry input-text"> <img src="http://magento.local/skin/adminhtml/default/default/images/grid-cal.gif" alt="" class="v-middle" id="el_start_date_trig" title="Select Date" style="">
+                <input name="test[start_date]" id="el_start_date" value="<?php echo Date("d/m/Y", time()); ?>" style="width: 200px" type="text" class=" required-entry input-text"> <img src="http://magento.local/skin/adminhtml/default/default/images/grid-cal.gif" alt="" class="v-middle" id="el_start_date_trig" title="Select Date" style="">
                     <script type="text/javascript">
                     //<![CDATA[
                         Calendar.setup({
@@ -28,7 +40,7 @@
             <tr>
                 <td class="label"><label for="el_end_date">End date</label></td>
                 <td class="value">
-                    <input name="end_date" id="el_end_date" value="" style="width: 200px" type="text" class=" input-text"> <img src="http://magento.local/skin/adminhtml/default/default/images/grid-cal.gif" alt="" class="v-middle" id="el_end_date_trig" title="Select Date" style="">
+                    <input name="test[end_date]" id="el_end_date" value="" style="width: 200px" type="text" class=" input-text"> <img src="http://magento.local/skin/adminhtml/default/default/images/grid-cal.gif" alt="" class="v-middle" id="el_end_date_trig" title="Select Date" style="">
                     <script type="text/javascript">
                     //<![CDATA[
                         Calendar.setup({
@@ -60,7 +72,7 @@
             <tr>
                 <td class="label"><label for="el_target_observer">Test page <span class="required">*</span></label></td>
                 <td class="value">
-                    <select id="el_target_observer" name="test_observer" style="width: 300px" class=" required-entry select">
+                    <select id="el_target_observer" name="test[observer_target]" style="width: 300px" class=" required-entry select">
                         <option value="catalog_controller_product_view">Product page</option>
                         <option value="catalog_controller_category_init_before">Category page</option>
                     </select>
@@ -69,7 +81,8 @@
             <tr>
                 <td class="label"><label for="el_conversion_observer">Conversion action <span class="required">*</span></label></td>
                 <td class="value">
-                    <select id="el_conversion_observer" name="conversion_observer" style="width: 300px" class=" required-entry select">
+                    <select id="el_conversion_observer" name="test[observer_conversion]" style="width: 300px" class=" required-entry select">
+                        <option value="checkout_cart_add_product_complete">Added product to cart</option>
                         <option value="checkout_onepage_controller_success_action">Completed checkout</option>
                     </select>
                 </td>
