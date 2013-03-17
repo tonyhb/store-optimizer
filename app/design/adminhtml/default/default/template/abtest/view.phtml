@@ -1,0 +1,36 @@
+<div class="content-header">
+  <table cellspacing="0">
+    <tbody><tr>
+      <td style="width:50%;"><h3 class="head-adminhtml">Test: <?php echo $this->getTest()->getName() ?></h3></td>
+      <td class="form-buttons">
+        <?php echo $this->getButtonHtml(); ?>
+      </td>
+    </tr>
+  </tbody></table>
+</div>
+
+<div id="abtest-overview">
+  <p class="title">Overview</p>
+    <div>
+        <span><?php echo number_format($this->getTest()->getVisitors()); ?></span>
+        visitors
+    </div>
+
+    <div>
+        <span><?php echo number_format($this->getTest()->getViews()); ?></span>
+        views
+    </div>
+
+    <div>
+        <span><?php echo number_format($this->getTest()->getConversions()); ?></span>
+        conversions
+    </div>
+
+    <div>
+        <span><?php echo $this->getTest()->getconversionRate(); ?>%</span>
+        visitor conversion rate
+    </div>
+</div>
+
+<div id="graph">
+</div>

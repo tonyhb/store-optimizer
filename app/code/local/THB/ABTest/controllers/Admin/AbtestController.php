@@ -54,7 +54,9 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
 
     public function viewAction()
     {
-        $this->_init()->renderLayout();
+        $this->_init()
+            ->_addContent($this->getLayout()->createBlock('abtest/adminhtml_view'))
+            ->renderLayout();
     }
 
     /**
@@ -88,10 +90,6 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
         }
 
         $this->_redirect('*/*/edit', array('id' => $test->getId(), '_current' => true));
-    }
-
-    public function editAction()
-    {
     }
 
 }

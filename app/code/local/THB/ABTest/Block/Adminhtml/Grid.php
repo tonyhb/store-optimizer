@@ -23,13 +23,45 @@ class THB_ABTest_Block_Adminhtml_Grid extends Mage_Adminhtml_Block_Widget_Grid
             'header' => $helper->__('Status'),
             'align'  => 'left',
             'width'  => '75px',
-            'index'  => 'is_active'
+            'index'  => 'is_active',
+            # Uses the getTestStatus method which allows us to use 
+            # non-database data in our grid
+            'getter' => 'getTestStatus',
         ));
 
-        $this->addColumn('description', array(
-            'header' => $helper->__('Description'),
+        $this->addColumn('name', array(
+            'header' => $helper->__('Test Name'),
             'align'  => 'left',
-            'index'  => 'description'
+            'index'  => 'name'
+        ));
+
+        $this->addColumn('conversion_rate', array(
+            'header' => $helper->__('Conversion Rate'),
+            'align'  => 'left',
+            'width'  => '125px',
+            'index'  => 'conversion_rate',
+            'getter' => 'getConversionRateAsString'
+        ));
+
+        $this->addColumn('conversions', array(
+            'header' => $helper->__('Conversions'),
+            'align'  => 'left',
+            'width'  => '125px',
+            'index'  => 'conversions'
+        ));
+
+        $this->addColumn('visitors', array(
+            'header' => $helper->__('Visitors'),
+            'align'  => 'left',
+            'width'  => '125px',
+            'index'  => 'visitors'
+        ));
+
+        $this->addColumn('views', array(
+            'header' => $helper->__('Views'),
+            'align'  => 'left',
+            'width'  => '125px',
+            'index'  => 'views'
         ));
 
         $this->addColumn('start_date', array(
@@ -43,7 +75,8 @@ class THB_ABTest_Block_Adminhtml_Grid extends Mage_Adminhtml_Block_Widget_Grid
             'header' => $helper->__('End Date'),
             'align'  => 'left',
             'width'  => '125px',
-            'index'  => 'end_date'
+            'index'  => 'end_date',
+            'getter' => 'getEndDate',
         ));
 
     }
