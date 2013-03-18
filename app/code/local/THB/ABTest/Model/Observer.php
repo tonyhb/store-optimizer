@@ -66,7 +66,6 @@ class THB_ABTest_Model_Observer {
         $table = Mage::getSingleton('core/resource')->getTableName('abtest/test');
         $all_tests = $read->fetchAll('SELECT * FROM '.$table.' WHERE (end_date >= '.date("Y-m-d").' OR end_date IS NULL) AND is_active = 1 ORDER BY id ASC');
 
-
         if (empty($all_tests))
             return;
 
@@ -172,7 +171,8 @@ class THB_ABTest_Model_Observer {
             $_session_data_has_changed = TRUE;
 
             # We need to ge tthe table name that we're updating
-            $table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+            $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+            $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
 
             $seed = mt_rand(1,100);
 
@@ -190,7 +190,8 @@ class THB_ABTest_Model_Observer {
                 if ($seed <= $current_percentage)
                 {
                     $cohort_data[$test_id] = $variation['id'];
-                    $this->_sql_queries .= ' UPDATE `'.$table.'` SET visitors = visitors + 1 WHERE id = '.$variation['id'].'; ';
+                    $this->_sql_queries .= ' UPDATE `'.$variation_table.'` SET visitors = visitors + 1 WHERE id = '.$variation['id'].'; ';
+                    $this->_sql_queries .= ' UPDATE `'.$test_table.'` SET visitors = visitors + 1 WHERE id = '.$test_id.'; ';
                     break;
                 }
             }
@@ -224,9 +225,15 @@ class THB_ABTest_Model_Observer {
         if ($variation = $this->_get_variation($observer_name, 'observer_target'))
         {
             # Get the table name for variation before we loop
-            $table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+            $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+            $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
+            $hit_table       = Mage::getSingleton('core/resource')->getTableName('abtest/hit');
 
-            $this->_sql_queries .= ' UPDATE `'.$table.'` SET views = views + 1 WHERE id = '.$variation['id'].'; ';
+            $this->_sql_queries .= ' UPDATE `'.$variation_table.'` SET views = views + 1 WHERE id = '.$variation['id'].'; ';
+            $this->_sql_queries .= ' UPDATE `'.$test_table.'` SET views = views + 1 WHERE id = '.$variation['test_id'].'; ';
+
+            # Add an upsert to our hit table
+            $this->_sql_queries .= ' INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `views`) VALUES ('.$variation['test_id'].', '.$variation['id'].', "'.date('Y-m-d').'", 1) ON DUPLICATE KEY UPDATE `views` = `views` + 1; ';
 
             return $variation;
         }
@@ -297,6 +304,33 @@ class THB_ABTest_Model_Observer {
     }
 
     /**
+     * Runs any time a target event happens, ie. a user visits a page we are 
+     * testing. This gets the cohort information, then calls a method to 
+     * manipulate any event information for the specific test.
+     *
+     * @since 0.0.1
+     * 
+     * @param Varien_Event_Observer
+     * @return void
+     */
+    public function run_target_event($observer)
+    {
+        if ( ! self::getIsRunning())
+            return;
+
+        # Get our event name for the method we're running, plus the cohort data 
+        # for the event
+        $event_name = $observer->getEvent()->getName();
+        $cohort = $this->get_variation_from_target($event_name);
+
+        # Call our event method to manipulate any data for the test
+        call_user_func_array(array($this, '_run_'.$event_name), array($observer, $cohort));
+
+        # Run our SQL queries
+        $this->_run_queries();
+    }
+
+    /**
      * Updates the product page's layout using Custom Layout Updates 
      * based upon the visitor's cohort.
      *
@@ -305,22 +339,16 @@ class THB_ABTest_Model_Observer {
      * @since 0.0.1
      *
      * @param Varien_Event_Observer
+     * @param array  Cohort information
      * @return void
      */
-    public function product_view($observer)
+    protected function _run_catalog_controller_product_view($observer, $cohort)
     {
-        if ( ! self::$_is_running)
-            return;
-
-        $cohort = $this->get_variation_from_target('catalog_controller_product_view');
-
         if ($cohort && $cohort['layout_update'])
         {
             $custom_updates = $observer->getProduct()->getCustomLayoutUpdate();
             $observer->getProduct()->setCustomLayoutUpdate($custom_updates.$cohort['layout_update']);
         }
-
-        $this->_run_queries();
     }
 
     /**
@@ -359,22 +387,8 @@ class THB_ABTest_Model_Observer {
             $read  = Mage::getSingleton('core/resource')->getConnection('core/write');
             $order = $read->fetchRow('SELECT entity_id, grand_total FROM sales_flat_order WHERE increment_id = '.$incrementId);
 
-            $write = Mage::getSingleton('core/resource')->getConnection('core/write');
-
-            # Add a conversion row in our conversion table
-            $table = Mage::getSingleton('core/resource')->getTableName('abtest/conversion');
-            $write->insert($table, array(
-                    'test_id'    => $cohort['test_id'],
-                    'order_id'   => $order['entity_id'],
-                    'variation_id' => $cohort['id'],
-                    'value'      => $order['grand_total'],
-                ));
-
-            # Update the variation information
-            $table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
-            $write->query('UPDATE `'.$table.'` SET conversions = conversions + 1, total_value = '.
-                ($cohort['total_value'] + $order['grand_total']).
-                ' WHERE id = '.$cohort['id']);
+            // Add our conversions
+            $this->_register_conversion($cohort, $order['grand_total'], $order['entity_id']);
         }
         catch (Exception $e) {
             # This is observer is run up to 6 times, and this is an error thrown by a unique constraint in the DB.
@@ -396,7 +410,7 @@ class THB_ABTest_Model_Observer {
         if ( ! self::$_is_running)
             return;
 
-        $cohort = $this->get_variation_from_conversion($observer->getEvent()->getName());
+        $variation = $this->get_variation_from_conversion($observer->getEvent()->getName());
 
         # Get the price of our item. We don't use the product's price or final 
         # price because this may be a bundled or configurable product: these 
@@ -405,18 +419,42 @@ class THB_ABTest_Model_Observer {
         $price = $buy_request['info_buyRequest']->getItem()->getPrice() * $observer->getEvent()->getProduct()->getQty();
 
         # Get our table name for variations and update the row information
-        $table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+        $this->_register_conversion($variation, $price);
+    }
+
+    /**
+     * Run from conversion obsers: this updates the test and variation 
+     * conversion totals, plus adds a conversion entry to the database.
+     *
+     * @since 0.0.1
+     *
+     * @param array  Variation information
+     * @param float  Value of conversion
+     * @param int    The entity ID of the order, if this came from a sale
+     * @return void
+     */
+    protected function _register_conversion($variation, $value = 0, $order_id = NULL)
+    {
         $write = Mage::getSingleton('core/resource')->getConnection('core/write');
-        $write->query('UPDATE `'.$table.'` SET conversions = conversions + 1, total_value = '.
-            ($cohort['total_value'] + $price).
-            ' WHERE id = '.$cohort['id']);
+
+        # Get our table name for variations and update the row information
+        $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+        $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
+
+        # Update the variation and test row counters
+        $write->query('UPDATE `'.$variation_table.'` SET conversions = conversions + 1, total_value = '.
+            ($variation['total_value'] + $value).
+            ' WHERE id = '.$variation['id']);
+
+        $write->query('UPDATE `'.$test_table.'` SET conversions = conversions + 1 WHERE id = '.$variation['test_id']);
 
         # Add a conversion row
         $table = Mage::getSingleton('core/resource')->getTableName('abtest/conversion');
         $write->insert($table, array(
-                'test_id'      => $cohort['test_id'],
-                'variation_id' => $cohort['id'],
-                'value'        => $price,
+                'test_id'      => $variation['test_id'],
+                'variation_id' => $variation['id'],
+                'order_id'     => $order_id,
+                'value'        => $value,
                 'created_at'   => date('Y-m-d H:i:s'),
             ));
     }
@@ -429,7 +467,7 @@ class THB_ABTest_Model_Observer {
      *
      * @return void
      */
-    public function _run_queries()
+    protected function _run_queries()
     {
         $this->_sql_queries = trim($this->_sql_queries);
         if ($this->_sql_queries && $this->_sql_queries != '')

@@ -56,6 +56,9 @@
 					<conversion>
 						<table>abtest_conversion</table>
 					</conversion>
+					<hit>
+						<table>abtest_hit</table>
+					</hit>
 				</entities>
 			</abtest_mysql4>
 		</models>
@@ -159,7 +162,7 @@
 				<observers>
 					<abtest>
 						<class>abtest/observer</class>
-						<method>product_view</method>
+						<method>run_target_event</method>
 					</abtest>
 				</observers>
 			</catalog_controller_product_view>
