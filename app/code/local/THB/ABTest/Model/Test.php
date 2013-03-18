@@ -1,6 +1,6 @@
 <?php
 
-class THB_ABTest_Model_Test extends Mage_Core_Model_Abstract {
+class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
 
     protected function _construct()
     {
@@ -21,22 +21,6 @@ class THB_ABTest_Model_Test extends Mage_Core_Model_Abstract {
         }
 
         return $this->getData('end_date');
-    }
-
-    /**
-     * Gets a test's conversion rate from the conversions and visitors
-     *
-     * @return string
-     */
-    public function getConversionRateAsString()
-    {
-        return $this->getConversionRate().'%';
-    }
-
-    public function getConversionRate()
-    {
-        $percentage = ($this->getData('conversions') / $this->getData('visitors')) * 100;
-        return round($percentage, 3);
     }
 
     /**

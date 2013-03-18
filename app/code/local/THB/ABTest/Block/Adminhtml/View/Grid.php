@@ -1,17 +1,23 @@
 <?php
 
-class THB_ABTest_Block_Adminhtml_Grid extends Mage_Adminhtml_Block_Widget_Grid
+class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
 
     public function __construct()
     {
         parent::__construct();
         $this->setDefaultSortOrder('id');
+
+        # Hide the pager and filter so we only show a basic grid
+        # Also, we're not using a container - the header is covered in the base 
+        # view.phtml template.
+        $this->setPagerVisibility(false);
+        $this->setFilterVisibility(false);
     }
 
     protected function _prepareCollection()
     {
-        $this->setCollection(Mage::getModel('abtest/test')->getResourceCollection());
+        $this->setCollection(Mage::getModel('abtest/Variation')->getResourceCollection());
         return parent::_prepareCollection();
     }
 
@@ -19,20 +25,18 @@ class THB_ABTest_Block_Adminhtml_Grid extends Mage_Adminhtml_Block_Widget_Grid
     {
         $helper = Mage::helper('core/data');
 
-        $this->addColumn('is_active', array(
-            'header' => $helper->__('Status'),
+        $this->addColumn('name', array(
+            'header' => $helper->__('Variation Name'),
             'align'  => 'left',
-            'width'  => '75px',
-            'index'  => 'is_active',
-            # Uses the getTestStatus method which allows us to use 
-            # non-database data in our grid
-            'getter' => 'getTestStatus',
+            'width'  => '125px',
+            'index'  => 'name',
         ));
 
-        $this->addColumn('name', array(
-            'header' => $helper->__('Test Name'),
+        $this->addColumn('description', array(
+            'header' => $helper->__('Description'),
             'align'  => 'left',
-            'index'  => 'name'
+            'index'  => 'description',
+            'renderer' => 'Mage_Adminhtml_Block_Widget_Grid_Column_Renderer_Longtext'
         ));
 
         $this->addColumn('conversion_rate', array(
@@ -64,26 +68,13 @@ class THB_ABTest_Block_Adminhtml_Grid extends Mage_Adminhtml_Block_Widget_Grid
             'index'  => 'views'
         ));
 
-        $this->addColumn('start_date', array(
-            'header' => $helper->__('Start Date'),
-            'align'  => 'left',
-            'width'  => '125px',
-            'index'  => 'start_date'
+        $this->addColumn('preview', array(
+            'header' => $helper->__('Preview'),
+            'align'  => 'center',
+            'width'  => '75px',
+            'renderer' => 'THB_ABTest_Block_Adminhtml_View_PreviewColumn',
         ));
 
-        $this->addColumn('end_date', array(
-            'header' => $helper->__('End Date'),
-            'align'  => 'left',
-            'width'  => '125px',
-            'index'  => 'end_date',
-            'getter' => 'getEndDate',
-        ));
 
     }
-
-    public function getRowUrl($row)
-    {
-        return $this->getUrl('*/*/view', array('id' => $row->getId()));
-    }
-
 }

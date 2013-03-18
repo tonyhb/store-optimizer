@@ -1,6 +1,6 @@
 <?php
 
-class THB_ABTest_Model_Variation extends Mage_Core_Model_Abstract {
+class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
 
     protected function _construct()
     {

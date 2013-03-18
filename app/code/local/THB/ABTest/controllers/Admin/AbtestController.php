@@ -30,7 +30,7 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
     public function indexAction()
     {
         $this->_init()
-            ->_addContent($this->getLayout()->createBlock('abtest/adminhtml_grid_container'))
+            ->_addContent($this->getLayout()->createBlock('abtest/adminhtml_list_grid_container'))
             ->renderLayout();
     }
 
@@ -54,8 +54,14 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
 
     public function viewAction()
     {
+        # Create a new view block and add the children
+        $view = $this->getLayout()->createBlock('abtest/adminhtml_view');
+
+        $view->setChild('grid', $this->getLayout()->createBlock('abtest/adminhtml_view_grid'));
+        $view->setChild('graph', $this->getLayout()->createBlock('abtest/adminhtml_view_graph'));
+
         $this->_init()
-            ->_addContent($this->getLayout()->createBlock('abtest/adminhtml_view'))
+            ->_addContent($view)
             ->renderLayout();
     }
 

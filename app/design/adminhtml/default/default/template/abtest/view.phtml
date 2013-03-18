@@ -9,6 +9,7 @@
   </tbody></table>
 </div>
 
+<!--
 <div id="abtest-overview">
   <p class="title">Overview</p>
     <div>
@@ -31,6 +32,7 @@
         visitor conversion rate
     </div>
 </div>
+-->
 
-<div id="graph">
-</div>
+<?php echo $this->getChildHtml('grid'); ?>
+<?php echo $this->getChildHtml('graph'); ?>

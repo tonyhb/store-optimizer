@@ -13,7 +13,7 @@
 			</action>
 			<action method="addItem">
 				<type>skin_js</type>
-				<file>abtest/graphael-min-0.5.1.min.js</file>
+				<file>abtest/raphael.popup.js</file>
 			</action>
 		</reference>
 	</default>
