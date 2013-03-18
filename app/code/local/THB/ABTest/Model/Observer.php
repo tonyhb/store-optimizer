@@ -433,30 +433,24 @@ class THB_ABTest_Model_Observer {
      * @param int    The entity ID of the order, if this came from a sale
      * @return void
      */
-    protected function _register_conversion($variation, $value = 0, $order_id = NULL)
+    protected function _register_conversion($variation, $value = 0, $order_id = 'NULL')
     {
         $write = Mage::getSingleton('core/resource')->getConnection('core/write');
 
         # Get our table name for variations and update the row information
-        $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
-        $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
+        $conversion_table = Mage::getSingleton('core/resource')->getTableName('abtest/conversion');
+        $variation_table  = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+        $test_table       = Mage::getSingleton('core/resource')->getTableName('abtest/test');
 
         # Update the variation and test row counters
-        $write->query('UPDATE `'.$variation_table.'` SET conversions = conversions + 1, total_value = '.
-            ($variation['total_value'] + $value).
-            ' WHERE id = '.$variation['id']);
+        # In the variation table we need to update the conversion rate - if we 
+        # don't include it we can't order by conversion rates in the "view test" 
+        # table.
+        $query  = 'UPDATE `'.$variation_table.'` SET conversions = conversions + 1, total_value = total_value + '.$value.', conversion_rate = ((conversions / visitors) * 100) WHERE id = '.$variation['id'].'; ';
+        $query .= 'UPDATE `'.$test_table.'` SET conversions = conversions + 1 WHERE id = '.$variation['test_id'].'; ';
+        $query .= 'INSERT INTO `'.$conversion_table.'` (test_id, variation_id, order_id, value, created_at) VALUES ('.$variation['test_id'].', '.$variation['id'].', '.$order_id.', '.$value.', "'.date('Y-m-d H:i:s').'"); ';
 
-        $write->query('UPDATE `'.$test_table.'` SET conversions = conversions + 1 WHERE id = '.$variation['test_id']);
-
-        # Add a conversion row
-        $table = Mage::getSingleton('core/resource')->getTableName('abtest/conversion');
-        $write->insert($table, array(
-                'test_id'      => $variation['test_id'],
-                'variation_id' => $variation['id'],
-                'order_id'     => $order_id,
-                'value'        => $value,
-                'created_at'   => date('Y-m-d H:i:s'),
-            ));
+        $write->query($query);
     }
 
     /**
