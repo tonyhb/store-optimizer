@@ -157,14 +157,27 @@ class THB_ABTest_Model_Observer {
             # Force the user into a cohort, if possible
             if (isset($_GET['_abtest_'.$test_id]))
             {
-                $_session_data_has_changed     = TRUE;
-                $cohort_data[$test_id] = $_GET['_abtest_'.$test_id];
+                $_session_data_has_changed = TRUE;
+                $cohort_data[$test_id] = array('variation' => $_GET['_abtest_'.$test_id]);
                 continue;
             }
 
             # User has already been segmented for this test
             if (isset($cohort_data[$test_id]))
+            {
+                # Wait a sec - is the visitor returning on a new day? If so, 
+                # we're going to need to assign a new hit because we increase 
+                # the day's visitor count if the visitor returns after a break.
+                $last_timestamp = strtotime($cohort_data[$test_id]['date']);
+                $current_timestamp = strtotime(date('Y-m-d'));
+                if ($last_timestamp < $current_timestamp)
+                {
+                    $this->_register_visitor_hit($test_id, $cohort_data[$test_id]['variation']);
+                    $_session_data_has_changed = TRUE;
+                }
+
                 continue;
+            }
 
             # We've udpated the session data with the below code and need 
             # to save it
@@ -189,8 +202,13 @@ class THB_ABTest_Model_Observer {
 
                 if ($seed <= $current_percentage)
                 {
-                    $cohort_data[$test_id] = $variation['id'];
-                    $this->_sql_queries .= ' UPDATE `'.$variation_table.'` SET visitors = visitors + 1 WHERE id = '.$variation['id'].'; ';
+                    $cohort_data[$test_id] = array(
+                        'variation' => $variation['id'],
+                        'date'      => date('Y-m-d')
+                    );
+
+                    $this->_register_visitor_hit($test_id, $variation['id']);
+                    $this->_sql_queries .= ' UPDATE `'.$variation_table.'` SET visitors = visitors + 1, conversion_rate = ((conversions / visitors) * 100) WHERE id = '.$variation['id'].'; ';
                     $this->_sql_queries .= ' UPDATE `'.$test_table.'` SET visitors = visitors + 1 WHERE id = '.$test_id.'; ';
                     break;
                 }
@@ -212,6 +230,26 @@ class THB_ABTest_Model_Observer {
     }
 
     /**
+     * We register visits on a daily basis so we can show accurate graphs on the 
+     * view test page.
+     *
+     * A new visit must be registered when either:
+     *   - A new visitor arrives on the site and is separated into a cohort
+     *   - Each day a visitor returns to the website, even if they are already 
+     *     separated into a cohort.
+     *
+     * @since 0.0.1
+     *
+     * @return void
+     */
+    protected function _register_visitor_hit($test_id, $variation_id)
+    {
+        $hit_table       = Mage::getSingleton('core/resource')->getTableName('abtest/hit');
+
+        $this->_sql_queries .= ' INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `visitors`) VALUES ('.$test_id.', '.$variation_id.', "'.date('Y-m-d').'", 1) ON DUPLICATE KEY UPDATE `visitors` = `visitors` + 1; ';
+    }
+
+    /**
      * Returns variation information for a test. The test is found by passing the 
      * test's observer name. The data returned is in the format:
      *
@@ -222,7 +260,7 @@ class THB_ABTest_Model_Observer {
      */
     public function get_variation_from_target($observer_name)
     {
-        if ($variation = $this->_get_variation($observer_name, 'observer_target'))
+        if ($variation = $this->_get_visitor_variation($observer_name, 'observer_target'))
         {
             # Get the table name for variation before we loop
             $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
@@ -232,7 +270,7 @@ class THB_ABTest_Model_Observer {
             $this->_sql_queries .= ' UPDATE `'.$variation_table.'` SET views = views + 1 WHERE id = '.$variation['id'].'; ';
             $this->_sql_queries .= ' UPDATE `'.$test_table.'` SET views = views + 1 WHERE id = '.$variation['test_id'].'; ';
 
-            # Add an upsert to our hit table
+            # Add an upsert to our hit table to increase the views (not visitors)
             $this->_sql_queries .= ' INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `views`) VALUES ('.$variation['test_id'].', '.$variation['id'].', "'.date('Y-m-d').'", 1) ON DUPLICATE KEY UPDATE `views` = `views` + 1; ';
 
             return $variation;
@@ -251,13 +289,16 @@ class THB_ABTest_Model_Observer {
      */
     public function get_variation_from_conversion($observer_name)
     {
-        return $this->_get_variation($observer_name, 'observer_conversion');
+        return $this->_get_visitor_variation($observer_name, 'observer_conversion');
     }
 
     /**
      * Returns variation information for a test. The test is found by passing the 
      * test's observer name and the type of observer you're looking for (either
      * a test page or a conversion event). The data returned is in the format:
+     *
+     * Note that this uses the current visitor's session information to return 
+     * the correct variant
      *
      * array(
      *   'id'               => $variation_id,
@@ -280,19 +321,26 @@ class THB_ABTest_Model_Observer {
      *                or a test page
      * @return array
      */
-    protected function _get_variation($observer_name, $source = 'observer_target')
+    protected function _get_visitor_variation($observer_name, $source = 'observer_target')
     {
         $session = Mage::getSingleton('core/session', array('name' => 'frontend'));
 
+        # Loop through all active tests to find one with a target/conversion 
+        # observer matching $observer_name
         foreach (self::$_active_tests as $test)
         {
             if ($test[$source] == $observer_name)
             {
-                $cohort_id = $session['cohort_data'][$test['id']];
+                # This is the test we're looking for, so we're going to get the 
+                # ID of the variation for this user
+                $variation_id = $session['cohort_data'][$test['id']]['variation'];
 
+                # Loop through all of the test's variations to find the matching 
+                # variation information, then return the complete variation 
+                # array of information
                 foreach ($test['variations'] as $variation)
                 {
-                    if ($variation['id'] == $cohort_id)
+                    if ($variation['id'] == $variation_id)
                     {
                         return $variation;
                     }
