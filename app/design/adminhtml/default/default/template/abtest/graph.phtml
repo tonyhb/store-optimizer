@@ -3,14 +3,32 @@
 <div id="graph" style="width: 100%; height: 250px">
 </div>
 
+<div id="graph-controls" class="cf">
+    <div id="graph-type">
+        <input class="graph_data" type="radio" name="graph_data" value="conversion_rate" checked="checked" id="conversion_rate_graph" /><label for="conversion_rate_graph">Conversion rate</label>
+        <input class="graph_data" type="radio" name="graph_data" value="visitor" id="visitor_graph" /><label for="visitor_graph">Visitors</label>
+        <input class="graph_data" type="radio" name="graph_data" value="conversion" id="conversion_graph" /><label for="conversion_graph">Conversions</label>
+
+        <span>|</span>
+
+        <input class="graph_type" type="radio" name="graph_type" value="visitor" id="cumulative" checked="checked" /><label for="cumulative">Cumulative</label>
+        <input class="graph_type" type="radio" name="graph_type" value="conversion" id="by_day" /><label for="by_day">By day</label>
+
+    </div>
+</div>
+
 <script>
     (function(d, w) {
         var abtest  = w.abtest = {
-                start_date      : new Date("<?php echo date('F d, Y 00:00:01', strtotime($this->getTest()->getStartDate())); ?>"),
-                variations      : <?php echo Mage::helper('core')->jsonEncode($helper->getVariationNames()); ?>,
-                visitor_data    : <?php echo Mage::helper('core')->jsonEncode($helper->getHitData()); ?>,
-                conversion_data : <?php echo Mage::helper('core')->jsonEncode($helper->getConversionData()); ?>,
-                conversion_rate_data : <?php echo Mage::helper('core')->jsonEncode($helper->getConversionRateData()); ?>,
+                type                                  : 'cumulative',
+                start_date                            : new Date("<?php echo date('F d, Y 00:00:01', strtotime($this->getTest()->getStartDate())); ?>"),
+                variations                            : <?php echo Mage::helper('core')->jsonEncode($helper->getVariationNames()); ?>,
+                visitor_graph_data_by_day             : <?php echo Mage::helper('core')->jsonEncode($helper->getHitData()); ?>,
+                conversion_graph_data_by_day          : <?php echo Mage::helper('core')->jsonEncode($helper->getConversionData()); ?>,
+                conversion_rate_graph_data_by_day     : <?php echo Mage::helper('core')->jsonEncode($helper->getConversionRateData()); ?>,
+                visitor_graph_data_cumulative         : <?php echo Mage::helper('core')->jsonEncode($helper->getCumulativeHitData()); ?>,
+                conversion_graph_data_cumulative      : <?php echo Mage::helper('core')->jsonEncode($helper->getCumulativeConversionData()); ?>,
+                conversion_rate_graph_data_cumulative : <?php echo Mage::helper('core')->jsonEncode($helper->getCumulativeConversionRateData()); ?>,
             },
             colors      = ['#ee6633', '#ffa900', '#00aadd', '#55bb00', '#cf53ff'],
             dot_size    = 5;
@@ -106,15 +124,69 @@
             return chart;
         }
 
+        abtest.changeGraph = function() {
+            abtest.graph.clear();
+
+            d.getElementById('graph').innerHTML = '';
+
+            var graph_buttons = $$('.graph_data'), i, target;
+            for (i in graph_buttons) {
+                if (graph_buttons.hasOwnProperty(i)) {
+                    if (graph_buttons[i].checked) {
+                        target = graph_buttons[i];
+                    }
+                }
+            }
+
+            if (target.getAttribute('id') == 'conversion_rate_graph') {
+                abtest.graph = abtest.create_graph({
+                    element: d.getElementById('graph'),
+                    raw_data: abtest[target.getAttribute('id') + '_data_' + abtest.type],
+                    y_axis_name: 'CONVERSION RATE',
+                    y_label_suffix: '%',
+                    tooltip_suffix: '%'
+                });
+            } else {
+                abtest.graph = abtest.create_graph({
+                    element: d.getElementById('graph'),
+                    raw_data: abtest[target.getAttribute('id') + '_data_' + abtest.type],
+                    y_axis_name: target.nextSibling.innerHTML.toUpperCase(),
+                });
+            }
+        };
+
         Event.observe(w, 'load', function() {
-            abtest.visitor_graph = abtest.create_graph({
+            abtest.graph = abtest.create_graph({
                 element: d.getElementById('graph'),
-                raw_data: abtest.conversion_rate_data,
+                raw_data: abtest.conversion_rate_graph_data_cumulative,
                 y_axis_name: 'CONVERSION RATE',
                 y_label_suffix: '%',
                 tooltip_suffix: '%'
             });
         });
 
+        var graph_buttons = $$('.graph_data'), i;
+        for (i in graph_buttons)
+        {
+            if (graph_buttons.hasOwnProperty(i))
+                graph_buttons[i].observe('change', abtest.changeGraph);
+        }
+
+        $('cumulative').observe('change', function(e) {
+            if (e.target.checked) {
+                abtest.type = 'cumulative';
+            } else { 
+                abtest.type = 'by_day';
+            }
+            abtest.changeGraph();
+        });
+        $('by_day').observe('change', function(e) {
+            if (e.target.checked) {
+                abtest.type = 'by_day';
+            } else { 
+                abtest.type = 'cumulative';
+            }
+            abtest.changeGraph();
+        });
     })(document, window);
 </script>

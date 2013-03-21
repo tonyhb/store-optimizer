@@ -45,6 +45,7 @@ class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
         return Mage::getModel('abtest/conversion')
             ->getcollection()
             ->addFieldToFilter('test_id', $this->getId())
+            ->setOrder('created_at', 'asc')
             ->addFieldToSelect('*');
     }
 
@@ -53,6 +54,7 @@ class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
         return Mage::getModel('abtest/hit')
             ->getCollection()
             ->addFieldToFilter('test_id', $this->getId())
+            ->setOrder('date', 'asc')
             ->addFieldToSelect('*');
     }
 

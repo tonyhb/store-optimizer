@@ -47,11 +47,20 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
             'getter' => 'getConversionsOverVisitors'
         ));
 
-        $this->addColumn('views', array(
-            'header' => $helper->__('Views'),
+        $this->addColumn('percentage', array(
+            'header' => $helper->__('Split Percentage'),
             'align'  => 'left',
             'width'  => '125px',
-            'index'  => 'views'
+            'index'  => 'split_percentage',
+        ));
+
+        $this->addColumn('value', array(
+            'header' => $helper->__('Value'),
+            'align'  => 'left',
+            'width'  => '125px',
+            'index'  => 'total_value',
+            'renderer' => 'Mage_Adminhtml_Block_Widget_Grid_Column_Renderer_Currency',
+            'currency_code' => Mage::app()->getStore()->getCurrentCurrencyCode()
         ));
 
         $this->addColumn('preview', array(
