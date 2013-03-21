@@ -6,7 +6,6 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
     public function __construct()
     {
         parent::__construct();
-        $this->setDefaultSortOrder('id');
 
         # Hide the pager and filter so we only show a basic grid
         # Also, we're not using a container - the header is covered in the base 
@@ -28,15 +27,8 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
         $this->addColumn('name', array(
             'header' => $helper->__('Variation Name'),
             'align'  => 'left',
-            'width'  => '125px',
+            # 'width'  => '125px',
             'index'  => 'name',
-        ));
-
-        $this->addColumn('description', array(
-            'header' => $helper->__('Description'),
-            'align'  => 'left',
-            'index'  => 'description',
-            'renderer' => 'Mage_Adminhtml_Block_Widget_Grid_Column_Renderer_Longtext'
         ));
 
         $this->addColumn('conversion_rate', array(
@@ -47,18 +39,12 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
             'getter' => 'getConversionRateAsString'
         ));
 
-        $this->addColumn('conversions', array(
-            'header' => $helper->__('Conversions'),
+        $this->addColumn('conversions_visitors', array(
+            'header' => $helper->__('Conversions / Visitors'),
             'align'  => 'left',
             'width'  => '125px',
-            'index'  => 'conversions'
-        ));
-
-        $this->addColumn('visitors', array(
-            'header' => $helper->__('Visitors'),
-            'align'  => 'left',
-            'width'  => '125px',
-            'index'  => 'visitors'
+            'index'  => 'conversions',
+            'getter' => 'getConversionsOverVisitors'
         ));
 
         $this->addColumn('views', array(

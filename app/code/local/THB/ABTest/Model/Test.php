@@ -40,4 +40,29 @@ class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
         }
     }
 
+    public function getConversionCollection()
+    {
+        return Mage::getModel('abtest/conversion')
+            ->getcollection()
+            ->addFieldToFilter('test_id', $this->getId())
+            ->addFieldToSelect('*');
+    }
+
+    public function getHitCollection()
+    {
+        return Mage::getModel('abtest/hit')
+            ->getCollection()
+            ->addFieldToFilter('test_id', $this->getId())
+            ->addFieldToSelect('*');
+    }
+
+    public function getVariationCollection()
+    {
+        return Mage::getModel('abtest/variation')
+            ->getCollection()
+            ->addFieldToFilter('test_id', $this->getId())
+            ->addFieldToSelect('*');
+    }
+
+
 }

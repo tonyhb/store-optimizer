@@ -9,4 +9,9 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
         return $this;
     }
 
+    public function getconversionsOverVisitors()
+    {
+        return $this->getConversions() . " / " . $this->getVisitors();
+    }
+
 }

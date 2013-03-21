@@ -9,30 +9,5 @@
   </tbody></table>
 </div>
 
-<!--
-<div id="abtest-overview">
-  <p class="title">Overview</p>
-    <div>
-        <span><?php echo number_format($this->getTest()->getVisitors()); ?></span>
-        visitors
-    </div>
-
-    <div>
-        <span><?php echo number_format($this->getTest()->getViews()); ?></span>
-        views
-    </div>
-
-    <div>
-        <span><?php echo number_format($this->getTest()->getConversions()); ?></span>
-        conversions
-    </div>
-
-    <div>
-        <span><?php echo $this->getTest()->getconversionRate(); ?>%</span>
-        visitor conversion rate
-    </div>
-</div>
--->
-
 <?php echo $this->getChildHtml('grid'); ?>
 <?php echo $this->getChildHtml('graph'); ?>
