@@ -21,3 +21,16 @@
 		float: left;
 		margin: 0 3px;
 	}
+
+/** Grid **/
+
+#view-test .grid th a span {
+	line-height: 18px;
+}
+#view-test .grid td, #view-test .grid th {
+	line-height: 25px;
+	}
+	#view-test .grid small {
+		color: #777;
+	}
+

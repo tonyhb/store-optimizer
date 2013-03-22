@@ -1,12 +1,14 @@
-<div class="content-header">
-  <table cellspacing="0">
-    <tbody><tr>
-      <td style="width:50%;"><h3 class="head-adminhtml">Test: <?php echo $this->getTest()->getName() ?></h3></td>
-      <td class="form-buttons">
-        <?php echo $this->getButtonHtml(); ?>
-      </td>
-    </tr>
-  </tbody></table>
+<div id="view-test">
+    <div class="content-header">
+    <table cellspacing="0">
+        <tbody><tr>
+        <td style="width:50%;"><h3 class="head-adminhtml">Test: <?php echo $this->getTest()->getName() ?></h3></td>
+        <td class="form-buttons">
+            <?php echo $this->getButtonHtml(); ?>
+        </td>
+        </tr>
+    </tbody></table>
+    </div>
+    <?php echo $this->getChildHtml('graph'); ?>
+    <?php echo $this->getChildHtml('grid'); ?>
 </div>
-<?php echo $this->getChildHtml('graph'); ?>
-<?php echo $this->getChildHtml('grid'); ?>

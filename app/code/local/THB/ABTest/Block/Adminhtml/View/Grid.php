@@ -36,7 +36,8 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
             'align'  => 'left',
             'width'  => '125px',
             'index'  => 'conversion_rate',
-            'getter' => 'getConversionRateAsString'
+            'getter' => 'getConversionRateAsString',
+            'renderer' => 'THB_ABTest_Block_Adminhtml_View_RawColumn'
         ));
 
         $this->addColumn('conversions_visitors', array(
@@ -52,6 +53,7 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
             'align'  => 'left',
             'width'  => '125px',
             'index'  => 'split_percentage',
+            'getter' => 'getSplitPercentageAsString'
         ));
 
         $this->addColumn('value', array(

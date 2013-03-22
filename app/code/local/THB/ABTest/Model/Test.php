@@ -40,6 +40,16 @@ class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
         }
     }
 
+    /**
+     * Gets a test's conversion rate from the conversions and visitors
+     *
+     * @return string
+     */
+    public function getConversionRateAsString()
+    {
+        return $this->getConversionRate().'%';
+    }
+
     public function getConversionCollection()
     {
         return Mage::getModel('abtest/conversion')
