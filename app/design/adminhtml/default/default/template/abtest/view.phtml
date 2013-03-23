@@ -1,38 +1,56 @@
-<div class="content-header">
-  <table cellspacing="0">
-    <tbody><tr>
-      <td style="width:50%;"><h3 class="head-adminhtml">Test: <?php echo $this->getTest()->getName() ?></h3></td>
-      <td class="form-buttons">
-        <?php echo $this->getButtonHtml(); ?>
-      </td>
-    </tr>
-  </tbody></table>
+<div id="view-test">
+    <div class="content-header">
+    <table cellspacing="0">
+        <tbody><tr>
+        <td style="width:50%;"><h3 class="head-adminhtml">Test: <?php echo $this->getTest()->getName() ?></h3></td>
+        <td class="form-buttons">
+            <?php echo $this->getButtonHtml(); ?>
+        </td>
+        </tr>
+    </tbody></table>
+    </div>
+    <?php echo $this->getChildHtml('graph'); ?>
+    <?php echo $this->getChildHtml('grid'); ?>
 </div>
 
-<!--
-<div id="abtest-overview">
-  <p class="title">Overview</p>
-    <div>
-        <span><?php echo number_format($this->getTest()->getVisitors()); ?></span>
-        visitors
-    </div>
+<script>
+    (function(d, w) {
+        Event.observe(w, 'load', function() {
+            var value, tr, largest = {
+                element: null,
+                value: 0
+            };
 
-    <div>
-        <span><?php echo number_format($this->getTest()->getViews()); ?></span>
-        views
-    </div>
+            $$('.conversion-improvement').each(function(e) {
+                value = parseFloat(e.innerHTML);
+                console.log(value);
 
-    <div>
-        <span><?php echo number_format($this->getTest()->getConversions()); ?></span>
-        conversions
-    </div>
+                if (value > largest.value) {
+                    largest.value = value;
+                    largest.element = e;
+                }
+            });
 
-    <div>
-        <span><?php echo $this->getTest()->getconversionRate(); ?>%</span>
-        visitor conversion rate
-    </div>
-</div>
--->
+            largest.element.className += ' best';
+            tr = largest.element.parentElement;
 
-<?php echo $this->getChildHtml('grid'); ?>
-<?php echo $this->getChildHtml('graph'); ?>
+            // get parent TR
+            while (tr.parentElement && tr.nodeName != 'TR' ) {
+                tr = tr.parentElement;
+            }
+
+            // OK, but we only want to highlight this variation as the best if 
+            // there's a statistical likelihood that the result is correct.
+
+            // Add a 'best-variation' classname so we can find if there's a span 
+            // with the class of 'likely' as a child. If so, that's the 
+            // confidence column with a likely result, so we can highlight it.
+            tr.className += ' best-variation';
+
+            if ($$('.best-variation .likely').length == 1) {
+                // Yep, we're statistically confident this row is the best.
+                tr.className += ' best confident';
+            }
+        });
+    })(document, window);
+</script>

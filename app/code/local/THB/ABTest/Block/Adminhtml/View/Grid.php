@@ -6,7 +6,6 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
     public function __construct()
     {
         parent::__construct();
-        $this->setDefaultSortOrder('id');
 
         # Hide the pager and filter so we only show a basic grid
         # Also, we're not using a container - the header is covered in the base 
@@ -28,44 +27,61 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
         $this->addColumn('name', array(
             'header' => $helper->__('Variation Name'),
             'align'  => 'left',
-            'width'  => '125px',
+            # 'width'  => '100px',
             'index'  => 'name',
-        ));
-
-        $this->addColumn('description', array(
-            'header' => $helper->__('Description'),
-            'align'  => 'left',
-            'index'  => 'description',
-            'renderer' => 'Mage_Adminhtml_Block_Widget_Grid_Column_Renderer_Longtext'
         ));
 
         $this->addColumn('conversion_rate', array(
             'header' => $helper->__('Conversion Rate'),
             'align'  => 'left',
-            'width'  => '125px',
+            'width'  => '100px',
             'index'  => 'conversion_rate',
-            'getter' => 'getConversionRateAsString'
+            'getter' => 'getConversionRateAsString',
+            'renderer' => 'THB_ABTest_Block_Adminhtml_View_RawColumn'
         ));
 
-        $this->addColumn('conversions', array(
-            'header' => $helper->__('Conversions'),
+        $this->addColumn('improved_by', array(
+            'header' => $helper->__('Improved by (approx.)'),
             'align'  => 'left',
-            'width'  => '125px',
-            'index'  => 'conversions'
+            'width'  => '100px',
+            'index'  => 'improved_by',
+            'getter' => 'getConversionImprovedBy',
+            'renderer' => 'THB_ABTest_Block_Adminhtml_View_RawColumn'
         ));
 
-        $this->addColumn('visitors', array(
-            'header' => $helper->__('Visitors'),
+        $this->addColumn('statistical_confidence', array(
+            'header' => $helper->__('Chance to beat control'),
             'align'  => 'left',
-            'width'  => '125px',
-            'index'  => 'visitors'
+            'width'  => '100px',
+            'index'  => 'statistical_confidence',
+            'getter' => 'getStatisticalConfidence',
+            'class'  => 'confidence',
+            'renderer' => 'THB_ABTest_Block_Adminhtml_View_RawColumn'
         ));
 
-        $this->addColumn('views', array(
-            'header' => $helper->__('Views'),
+        $this->addColumn('conversions_visitors', array(
+            'header' => $helper->__('Conversions / Visitors'),
             'align'  => 'left',
-            'width'  => '125px',
-            'index'  => 'views'
+            'width'  => '100px',
+            'index'  => 'conversions',
+            'getter' => 'getConversionsOverVisitors'
+        ));
+
+        $this->addColumn('percentage', array(
+            'header' => $helper->__('Visitor percentage'),
+            'align'  => 'left',
+            'width'  => '100px',
+            'index'  => 'split_percentage',
+            'getter' => 'getSplitPercentageAsString'
+        ));
+
+        $this->addColumn('value', array(
+            'header' => $helper->__('Value'),
+            'align'  => 'left',
+            'width'  => '100px',
+            'index'  => 'total_value',
+            'renderer' => 'Mage_Adminhtml_Block_Widget_Grid_Column_Renderer_Currency',
+            'currency_code' => Mage::app()->getStore()->getCurrentCurrencyCode()
         ));
 
         $this->addColumn('preview', array(

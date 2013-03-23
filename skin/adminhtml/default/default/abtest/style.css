@@ -1,25 +1,49 @@
-#abtest-overview {
-	width: 100%;
-	height: 110px;
-	background: url(images/fabric_of_squares_gray.png);
-	text-align: center;
-	border: 1px solid #ddd;
+.cf{zoom:1}.cf:before,.cf:after{content:"";display:table}.clear,.cf:after{clear:both}
+
+#graph-controls {
+	float: right;
+	color: #999;
+	font-size: 10px;
+	margin-bottom: 30px;
 	}
-	#abtest-overview .title {
-		font-weight: bold;
-		padding: 10px 0;
-		color: #444;
-		font-size: 12px;
-	}
-	#abtest-overview div {
-		width: 25%;
+	#graph-type span {
 		float: left;
+		margin: -3px 20px 0 0 ;
 	}
-	#abtest-overview span {
+	#graph-type label {
+		float: left;
+		margin: -2px 20px 0 0;
+		padding-left: 5px;
+		color: #999;
+	}
+	#graph-type input {
 		display: block;
-		padding: 10px 0;
-		font-size: 40px;
-		font-weight: bold;
-		letter-spacing: -2px;
-		color: #444;
+		float: left;
+		margin: 0 3px;
 	}
+
+/** Grid **/
+
+#view-test .grid th a span {
+	line-height: 18px;
+}
+#view-test .grid td, #view-test .grid th {
+	line-height: 25px;
+	}
+	#view-test .grid small, #view-test .average {
+		color: #777;
+	}
+	#view-test .unlikely, #view-test .worst, #view-test .worse {
+		color: #e90012;
+	}
+	#view-test .worse {
+		font-weight: bold;
+	}
+	#view-test .likely, #view-test .best {
+		color: green;
+		font-weight: bold;
+	}
+	#view-test .confident {
+		background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAeCAMAAAD5ENUgAAAATlBMVEXs/+Lz/+z////9//zt/+T2//H7//rv/+b+//7w/+n5//X4//Xu/+X1//D0/+7t/+P+//33//P7//jw/+f5//by/+v8//v8//r6//j7//kNIVK7AAAAjElEQVR42m3QORbDIBAEURAIgTaEtdn3v6gTV08gd/ijeu2Y734LEYoB8471UBINGSuyEZpEBcqzLGGLaFVHVcf27GjQ60/HLjugJjqhLUL1enYs0FXJcBk7dYeDDsvA8mAZWLMMzDpu2Wp3YMnukBW7A1PH3mHW8Zb11oGFqDtk3u7APtCcMeuYuOMLD/AFg1z+a4UAAAAASUVORK5CYII=) repeat;
+	}
+
