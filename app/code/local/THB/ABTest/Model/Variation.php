@@ -56,12 +56,17 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
         $standard_error = $standard_error * 1.96; # 1.96 = 95% confidence (bigger stanard error range with less visitors), or 1.28 for 80% confidence
         $standard_error = round($standard_error * 100, 2);
 
-        return $this->getConversionRate().'% &nbsp;<small>&#177;'.$standard_error.'%</small>';
+        return $this->getConversionRate().'% &nbsp; <small>&#177;'.$standard_error.'%</small>';
     }
 
     public function getStatisticalConfidence()
     {
         if ($this->getData('is_control') == 1)
+        {
+            return '<small>N/A</small>';
+        }
+
+        if ($this->getData('conversion_rate') < $this->getControl()->getData('conversion_rate'))
         {
             return '<small>N/A</small>';
         }
@@ -100,9 +105,9 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
         $improvement = ($this->getData('conversion_rate') / $original_rate) * 100;
         $improvement = round($improvement, 2); 
 
-        if ($improvement < 0)
+        if ($this->getData('conversion_rate') < $original_rate)
         {
-            return '<span class="worse">'.$improvement.'%</span>';
+            return '<span class="worse">-'.$improvement.'%</span>';
         }
 
         return '<span class="conversion-improvement">'.$improvement.'%</span>';

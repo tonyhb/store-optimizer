@@ -55,6 +55,7 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
             'width'  => '100px',
             'index'  => 'statistical_confidence',
             'getter' => 'getStatisticalConfidence',
+            'class'  => 'confidence',
             'renderer' => 'THB_ABTest_Block_Adminhtml_View_RawColumn'
         ));
 

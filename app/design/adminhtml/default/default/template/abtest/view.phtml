@@ -39,7 +39,18 @@
                 tr = tr.parentElement;
             }
 
-            tr.className += ' best';
+            // OK, but we only want to highlight this variation as the best if 
+            // there's a statistical likelihood that the result is correct.
+
+            // Add a 'best-variation' classname so we can find if there's a span 
+            // with the class of 'likely' as a child. If so, that's the 
+            // confidence column with a likely result, so we can highlight it.
+            tr.className += ' best-variation';
+
+            if ($$('.best-variation .likely').length == 1) {
+                // Yep, we're statistically confident this row is the best.
+                tr.className += ' best confident';
+            }
         });
     })(document, window);
 </script>
