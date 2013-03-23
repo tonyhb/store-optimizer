@@ -40,6 +40,15 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
             'renderer' => 'THB_ABTest_Block_Adminhtml_View_RawColumn'
         ));
 
+        $this->addColumn('improved_by', array(
+            'header' => $helper->__('Improved by (approx.)'),
+            'align'  => 'left',
+            'width'  => '100px',
+            'index'  => 'improved_by',
+            'getter' => 'getConversionImprovedBy',
+            'renderer' => 'THB_ABTest_Block_Adminhtml_View_RawColumn'
+        ));
+
         $this->addColumn('statistical_confidence', array(
             'header' => $helper->__('Chance to beat control'),
             'align'  => 'left',

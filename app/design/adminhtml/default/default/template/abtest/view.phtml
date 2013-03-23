@@ -12,3 +12,34 @@
     <?php echo $this->getChildHtml('graph'); ?>
     <?php echo $this->getChildHtml('grid'); ?>
 </div>
+
+<script>
+    (function(d, w) {
+        Event.observe(w, 'load', function() {
+            var value, tr, largest = {
+                element: null,
+                value: 0
+            };
+
+            $$('.conversion-improvement').each(function(e) {
+                value = parseFloat(e.innerHTML);
+                console.log(value);
+
+                if (value > largest.value) {
+                    largest.value = value;
+                    largest.element = e;
+                }
+            });
+
+            largest.element.className += ' best';
+            tr = largest.element.parentElement;
+
+            // get parent TR
+            while (tr.parentElement && tr.nodeName != 'TR' ) {
+                tr = tr.parentElement;
+            }
+
+            tr.className += ' best';
+        });
+    })(document, window);
+</script>

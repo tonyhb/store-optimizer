@@ -88,4 +88,24 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
         return '<span class="average">'.$confidence.'%</small>';
     }
 
+    public function getConversionImprovedBy()
+    {
+        if ($this->getData('is_control'))
+        {
+            return '<small>N/A</small>';
+        }
+
+        $original_rate = $this->getControl()->getData('conversion_rate');
+
+        $improvement = ($this->getData('conversion_rate') / $original_rate) * 100;
+        $improvement = round($improvement, 2); 
+
+        if ($improvement < 0)
+        {
+            return '<span class="worse">'.$improvement.'%</span>';
+        }
+
+        return '<span class="conversion-improvement">'.$improvement.'%</span>';
+    }
+
 }

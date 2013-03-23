@@ -33,10 +33,10 @@
 	#view-test .grid small, #view-test .average {
 		color: #777;
 	}
-	#view-test .unlikely {
+	#view-test .unlikely, #view-test .worst, #view-test .worse {
 		color: red;
 	}
-	#view-test .likely {
+	#view-test .likely, #view-test .best {
 		color: green;
 		font-weight: bold;
 	}
