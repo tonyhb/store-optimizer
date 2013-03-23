@@ -30,7 +30,14 @@
 #view-test .grid td, #view-test .grid th {
 	line-height: 25px;
 	}
-	#view-test .grid small {
+	#view-test .grid small, #view-test .average {
 		color: #777;
+	}
+	#view-test .unlikely {
+		color: red;
+	}
+	#view-test .likely {
+		color: green;
+		font-weight: bold;
 	}
 

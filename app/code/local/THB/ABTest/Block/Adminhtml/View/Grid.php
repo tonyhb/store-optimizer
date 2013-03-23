@@ -27,31 +27,40 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
         $this->addColumn('name', array(
             'header' => $helper->__('Variation Name'),
             'align'  => 'left',
-            # 'width'  => '125px',
+            # 'width'  => '100px',
             'index'  => 'name',
         ));
 
         $this->addColumn('conversion_rate', array(
             'header' => $helper->__('Conversion Rate'),
             'align'  => 'left',
-            'width'  => '125px',
+            'width'  => '100px',
             'index'  => 'conversion_rate',
             'getter' => 'getConversionRateAsString',
+            'renderer' => 'THB_ABTest_Block_Adminhtml_View_RawColumn'
+        ));
+
+        $this->addColumn('statistical_confidence', array(
+            'header' => $helper->__('Chance to beat control'),
+            'align'  => 'left',
+            'width'  => '100px',
+            'index'  => 'statistical_confidence',
+            'getter' => 'getStatisticalConfidence',
             'renderer' => 'THB_ABTest_Block_Adminhtml_View_RawColumn'
         ));
 
         $this->addColumn('conversions_visitors', array(
             'header' => $helper->__('Conversions / Visitors'),
             'align'  => 'left',
-            'width'  => '125px',
+            'width'  => '100px',
             'index'  => 'conversions',
             'getter' => 'getConversionsOverVisitors'
         ));
 
         $this->addColumn('percentage', array(
-            'header' => $helper->__('Split Percentage'),
+            'header' => $helper->__('Visitor percentage'),
             'align'  => 'left',
-            'width'  => '125px',
+            'width'  => '100px',
             'index'  => 'split_percentage',
             'getter' => 'getSplitPercentageAsString'
         ));
@@ -59,7 +68,7 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
         $this->addColumn('value', array(
             'header' => $helper->__('Value'),
             'align'  => 'left',
-            'width'  => '125px',
+            'width'  => '100px',
             'index'  => 'total_value',
             'renderer' => 'Mage_Adminhtml_Block_Widget_Grid_Column_Renderer_Currency',
             'currency_code' => Mage::app()->getStore()->getCurrentCurrencyCode()
