@@ -13,7 +13,7 @@ class THB_ABTest_Block_Adminhtml_View_PreviewColumn extends Mage_Adminhtml_Block
         $button = $this->getLayout()->createBlock('Mage_Adminhtml_Block_Widget_Button');
 
         $button
-            ->setOnClick("setLocation('".$this->getUrl('*/*/index')."')")
+            ->setOnClick("window.open('".$this->getUrl('*/*/preview/id/'.$model->getId())."', 'preview')")
             ->setClass("preview")
             ->setLabel("Preview");
 
