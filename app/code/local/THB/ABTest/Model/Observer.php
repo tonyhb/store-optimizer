@@ -7,19 +7,8 @@
 class THB_ABTest_Model_Observer {
 
     /**
-     * Stores the visitor's cohort data in an array (which variation a user has)
-     *
-     * @since 0.0.1
-     *
-     * @var array
-     */
-    protected $_visitor_cohort_data;
-
-    /**
      * Initialises the model by loading all current A/B tests (and variations for 
      * the tests) and splitting visitors into cohorts.
-     *
-     * @uses THB_ABTest_Model_Observer::_split_user_into_cohorts()
      *
      * @since 0.0.1
      */
@@ -41,11 +30,6 @@ class THB_ABTest_Model_Observer {
     /**
      * We register visits on a daily basis so we can show accurate graphs on the 
      * view test page.
-     *
-     * A new visit must be registered when either:
-     *   - A new visitor arrives on the site and is separated into a cohort
-     *   - Each day a visitor returns to the website, even if they are already 
-     *     separated into a cohort.
      *
      * @since 0.0.1
      *
@@ -128,7 +112,7 @@ class THB_ABTest_Model_Observer {
         if ( ! Mage::helper('abtest')->getIsRunning())
             return;
 
-        $cohort = $this->get_visitors_variation_from_conversion('checkout_onepage_controller_success_action');
+        $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName('checkout_onepage_controller_success_action', 'observer_conversion');
 
         if (Mage::getConfig() !== NULL)
         {
@@ -152,7 +136,7 @@ class THB_ABTest_Model_Observer {
             $order = $read->fetchRow('SELECT entity_id, grand_total FROM sales_flat_order WHERE increment_id = '.$incrementId);
 
             // Add our conversions
-            $this->_register_conversion($cohort, $order['grand_total'], $order['entity_id']);
+            $this->_register_conversion($variation, $order['grand_total'], $order['entity_id']);
         }
         catch (Exception $e) {
             # This is observer is run up to 6 times, and this is an error thrown by a unique constraint in the DB.
@@ -174,7 +158,7 @@ class THB_ABTest_Model_Observer {
         if ( ! Mage::helper('abtest')->getIsRunning())
             return;
 
-        $variation = $this->get_visitors_variation_from_conversion($observer->getEvent()->getName());
+        $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion');
 
         # Get the price of our item. We don't use the product's price or final 
         # price because this may be a bundled or configurable product: these 
