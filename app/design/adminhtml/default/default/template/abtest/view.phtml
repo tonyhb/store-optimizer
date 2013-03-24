@@ -9,6 +9,9 @@
         </tr>
     </tbody></table>
     </div>
+
+    <?php echo var_dump(Mage::helper('abtest')->getActiveTests()); ?>
+
     <?php echo $this->getChildHtml('graph'); ?>
     <?php echo $this->getChildHtml('grid'); ?>
 </div>
