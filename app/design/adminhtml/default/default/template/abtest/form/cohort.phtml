@@ -1,9 +1,9 @@
 <div class="entry-edit-head">
     <?php if ($this->getCohort() == 'Control'): ?>
-        <h4 class="icon-head head-edit-form fieldset-legend">Control</h4>
+        <h4 class="icon-head head-edit-form fieldset-legend cohort-label cohort_Control_name"><span>Control</span></h4>
         <input type="hidden" name="cohort[<?php echo $this->getCohort(); ?>][is_control]" value="1" />
     <?php else: ?>
-        <h4 class="icon-head head-edit-form fieldset-legend">Variant <?php echo $this->getCohort() ?></h4>
+        <h4 class="icon-head head-edit-form fieldset-legend cohort-label cohort_<?php echo $this->getCohort(); ?>_name"><span>Variation <?php echo $this->getCohort() ?></span></h4>
         <input type="hidden" name="cohort[<?php echo $this->getCohort(); ?>][is_control]" value="0" />
     <?php endif; ?>
 
@@ -13,10 +13,24 @@
 <div class="form-buttons"></div>
 <div class="fieldset" id="date_fieldset">
     <div class="hor-scroll">
-        <table cellspacing="0" class="form-list" style="width:100%">
+        <table cellspacing="0" class="form-list">
         <tbody>
             <tr>
-                <td class="value"><p>Layout Update XML<?php if ($this->getCohort() == 'Control'): ?> (typically left blank for the control)<?php endif; ?>:</p></td>
+                <td class="label"><label for="cohort_<?php echo $this->getCohort(); ?>_name">Name <span class="required">*</span></label></td>
+                <td class="value">
+                <?php if ($this->getCohort() == 'Control'): ?>
+                    <input type="text" name="cohort[<?php echo $this->getCohort(); ?>][name]" id="cohort_<?php echo $this->getCohort(); ?>_name" value="Control" class="required-entry input-text cohort-name" />
+                <?php else: ?>
+                    <input type="text" name="cohort[<?php echo $this->getCohort(); ?>][name]" id="cohort_<?php echo $this->getCohort(); ?>_name" value="Variation <?php echo $this->getCohort(); ?>" class="required-entry input-text cohort-name" />
+                <?php endif; ?>
+                </td>
+            </tr>
+        </tbody>
+        </table>
+        <table cellspacing="0" class="form-list" style="width:100%; margin-top: 10px;">
+        <tbody>
+            <tr>
+                <td class="value">Layout Update XML<?php if ($this->getCohort() == 'Control'): ?> (typically left blank for the control)<?php endif; ?>:</td>
             </tr>
             <tr>
                 <td class="value">

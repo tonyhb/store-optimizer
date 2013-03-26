@@ -40,6 +40,30 @@
                     });
 
                     $('split_traffic_evenly').observe('click', abTest.splitControlTrafficEvenly);
+
+                    $$('.cohort-name').each(function(input) {
+                        $(input).observe('blur', function(e) {
+                            var elements = $$('.' + e.target.getAttribute('id'));
+                            elements.each(function(el) {
+                                var i, span, c;
+                                // Replace the span's TEXT node with the new 
+                                // name
+                                for(i in el.childNodes) {
+                                    if (el.childNodes[i].nodeName != 'SPAN') continue;
+
+                                    // We've got the span, now modify the text 
+                                    // node
+                                    span = el.childNodes[i];
+                                    for (c in span.childNodes)
+                                    {
+                                        if (span.childNodes[c].nodeType == '3') {
+                                            span.childNodes[c].data = e.target.value;
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    });
                 },
 
                 // Shows the right amount of variant tabs on the left hand side.
@@ -102,12 +126,12 @@
 
                     if (abTest.cohorts == 2) {
                         traffic = (100 - abTest.controlTraffic);
-                        $('note_el_control_traffic').innerHTML = "<span>The variant gets <b>" + traffic + "%</b> of the traffic</span>";
+                        $('note_el_control_traffic').innerHTML = "<span>The variation gets <b>" + traffic + "%</b> of the traffic</span>";
                     } else {
                         // Could be a recurring decimal
                         traffic = ((100 - abTest.controlTraffic) / (abTest.cohorts - 1));
                         traffic = Math.round(traffic * 100) / 100;
-                        $('note_el_control_traffic').innerHTML = "<span>Each variant gets <b>" + traffic + "%</b> of the traffic</span>";
+                        $('note_el_control_traffic').innerHTML = "<span>Each variation gets <b>" + traffic + "%</b> of the traffic</span>";
                     }
 
                     $('cohort_Control_percentage').value = abTest.controlTraffic;
