@@ -60,19 +60,31 @@ class THB_ABTest_Model_Observer {
      */
     public function run_target_event($observer)
     {
-        if ( ! Mage::helper('abtest')->getIsRunning())
-            return;
-
-        # Get our event name for the method we're running, plus the variation data 
-        # for the event
+        # Get our event name for the method we're running
         $event_name = $observer->getEvent()->getName();
-        $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($event_name);
 
-        # Register a hit for this variation/test
-        $this->_register_visitor_hit($variation['test_id'], $variation['id']);
+        # If we're previewing layout update XML we need to skip loading 
+        # a variation. This will return FALSE and run the inner block if there's 
+        # no preview.
+        $layout_update = Mage::helper('abtest/visitor')->getPreviewXml($event_name);
+
+        if ($layout_update === FALSE)
+        {
+            # Check if the test is running then, if so, load our variation and 
+            # register a hit
+            if ( ! Mage::helper('abtest')->getIsRunning())
+                return;
+
+            $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($event_name);
+
+            # Register a hit for this variation/test
+            $this->_register_visitor_hit($variation['test_id'], $variation['id']);
+
+            $layout_update = $variation['layout_update'];
+        }
 
         # Call our event method to manipulate any data for the test
-        call_user_func_array(array($this, '_run_'.$event_name), array($observer, $variation));
+        call_user_func_array(array($this, '_run_'.$event_name), array($observer, $layout_update));
 
         # Run our SQL queries
         Mage::helper('abtest/optimizer')->runQueries();
@@ -90,12 +102,12 @@ class THB_ABTest_Model_Observer {
      * @param array  Cohort information
      * @return void
      */
-    protected function _run_catalog_controller_product_view($observer, $cohort)
+    protected function _run_catalog_controller_product_view($observer, $layout_update)
     {
-        if ($cohort && $cohort['layout_update'])
+        if ($layout_update)
         {
             $custom_updates = $observer->getProduct()->getCustomLayoutUpdate();
-            $observer->getProduct()->setCustomLayoutUpdate($custom_updates.$cohort['layout_update']);
+            $observer->getProduct()->setCustomLayoutUpdate($custom_updates.$layout_update);
         }
     }
 
@@ -201,4 +213,11 @@ class THB_ABTest_Model_Observer {
         $write->query($query);
     }
 
+    public function preview_layout($observer)
+    {
+        if ($data = Mage::getSingleton('core/cookie')->get('test_preview'))
+        {
+            $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="after_body_start"><block type="core/template" template="abtest/preview.phtml" /></reference>');
+        }
+    }
 }

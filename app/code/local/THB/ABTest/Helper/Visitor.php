@@ -279,4 +279,35 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         return FALSE;
     }
 
+    public function getPreview()
+    {
+        if ($cookie = Mage::getSingleton('core/cookie')->get('test_preview'))
+        {
+            return Mage::helper('core')->jsonDecode($cookie);
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * Loads layout updates when previewing a variation. The layout information 
+     * is extracted from the 'test_preview' cookie. If this cookie doesn't exist 
+     * we return FALSE.
+     *
+     * @since 0.0.1
+     *
+     * @param  string  Observer name to load preview for
+     * @return mixed
+     */
+    public function getPreviewXml($observer_event_name)
+    {
+        if ($cookie = $this->getPreview())
+        {
+            if ($observer_event_name == $cookie['observer'])
+                return $cookie['xml'];
+        }
+
+        return FALSE;
+    }
+
 }

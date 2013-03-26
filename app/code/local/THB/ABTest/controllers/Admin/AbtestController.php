@@ -104,7 +104,27 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
      */
     public function previewAction()
     {
-        $variation = Mage::getModel('abtest/variation')->load($this->getRequest()->getParam('id'));
+        if ($variation_id = $this->getRequest()->getParam('id'))
+        {
+            $variation = Mage::getModel('abtest/variation')->load($variation_id);
+            $test      = Mage::getModel('abtest/test')->load($variation['test_id']);
+
+            $data = array(
+                'init_at'        => date('Y-m-d H:i:s'),
+                'observer'       => $test->getData('observer_target'),
+                'xml'            => $variation->getData('layout_update'),
+                'variation_name' => $variation->getData('name'),
+                'test_name'      => $test->getData('name'),
+                'running'        => TRUE, # Is this test running already?
+                'key'            => Mage::getSingleton('core/session')->getFormKey(),
+            );
+        }
+
+        $data = Mage::helper('core')->jsonEncode($data);
+
+        Mage::getSingleton('core/cookie')->set('test_preview', $data, 600);
+
+        $this->_redirectUrl(Mage::getStoreConfig('web/unsecure/base_url'));
 
         # 1. Load the variation's XML
         # 2. Inject into the user's session under 'abtest_preview', with the 
@@ -122,6 +142,18 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
         #      - A button to quit the preview
         #      - The time remaining on the preview
         # 6. Make the preview expire after 5 minutes (definable by options)
+    }
+
+    public function exitPreviewAction()
+    {
+        $referrer = $_SERVER['HTTP_REFERER'];
+        if ( ! $referrer OR strpos($referrer, 'exitPreview') != -1)
+        {
+            $referrer = '/';
+        }
+
+        Mage::getSingleton('core/cookie')->delete('test_preview');
+        echo "<html><head><meta http-equiv='refresh' content='1;URL=\"$referrer\"'></head><body><script>window.close();</script><p style='font: 16px/1.5 Helvetica, Arial, sans-serif; text-align: center; margin-top: 100px'>Redirecting...</p></body>";
     }
 
 }

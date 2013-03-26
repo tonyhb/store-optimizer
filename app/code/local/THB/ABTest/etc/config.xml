@@ -187,6 +187,16 @@
 					</abtest>
 				</observers>
 			</checkout_cart_add_product_complete>
+
+			<controller_action_layout_generate_xml_before>
+				<observers>
+					<abtest>
+						<type>singleton</type>
+						<class>abtest/observer</class>
+						<method>preview_layout</method>
+					</abtest>
+				</observers>
+			</controller_action_layout_generate_xml_before>
 		</events>
 	</frontend>
 </config>
