@@ -7,51 +7,8 @@
 class THB_ABTest_Model_Observer {
 
     /**
-     * Stores whether an A/B test is running
-     *
-     * @since 0.0.1
-     *
-     * @var bool
-     */
-    protected static $_is_running = FALSE;
-
-    /**
-     * Stores an array of all active tests
-     *
-     * @since 0.0.1
-     *
-     * @var array
-     */
-    protected static $_active_tests = array();
-
-    /**
-     * Stores the core session model for the visitor
-     *
-     * @since 0.0.1
-     *
-     * @var Mage_Core_Model_Session
-     */
-    protected $_session;
-
-    /**
-     * This stores all of the queries made by the user's request and executes 
-     * them at once after the observer has finished processing the event.
-     *
-     * This is for (minute) optimisation - it's quicker to make one request than 
-     * two/three/four etc.
-     *
-     * @see THB_ABTest_Model_Observer::_run_queries() which runs these queries
-     * @var string
-     *
-     * @since 0.0.1
-     */
-    protected $_sql_queries = '';
-
-    /**
      * Initialises the model by loading all current A/B tests (and variations for 
      * the tests) and splitting visitors into cohorts.
-     *
-     * @uses THB_ABTest_Model_Observer::_split_user_into_cohorts()
      *
      * @since 0.0.1
      */
@@ -62,181 +19,17 @@ class THB_ABTest_Model_Observer {
             return;
 
         # Find out if we've got any tests running.
-        $read = Mage::getSingleton('core/resource')->getConnection('core/read');
-        $table = Mage::getSingleton('core/resource')->getTableName('abtest/test');
-        $all_tests = $read->fetchAll('SELECT * FROM '.$table.' WHERE (end_date >= '.date("Y-m-d").' OR end_date IS NULL) AND is_active = 1 ORDER BY id ASC');
+        $helper = Mage::helper('abtest');
 
-        if (empty($all_tests))
+        if ($helper->getActiveTests() == array())
             return;
 
-        # There are active tests running
-        self::$_is_running = TRUE;
-
-        if ( ! $this->_session)
-        {
-            # Ensure we have the user's session data
-            $this->_session = Mage::getSingleton('core/session', array('name' => 'frontend'));
-        }
-
-        # Find all test IDs and add the tests to the active tests property, 
-        # using the test ID as the array key
-        $test_ids = array();
-        foreach ($all_tests as $test)
-        {
-            self::$_active_tests += array(
-                $test['id'] => $test + array('variations' => array())
-            );
-
-            $test_ids[] = $test['id'];
-        }
-
-        # Find all variations
-        $table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
-        $variations = $read->fetchAll('SELECT * FROM '.$table.' WHERE test_id IN ('.implode(',', $test_ids).') ORDER BY test_id ASC');
-
-        # Add the variations to the tests in the active tests property
-        foreach ($variations as $variation)
-        {
-            self::$_active_tests[$variation['test_id']]['variations'][] = $variation;
-        }
-
-        $this->_split_user_into_cohorts();
-    }
-
-    /**
-     * Returns an array of all active tests and their variation.
-     *
-     * @since 0.0.1
-     *
-     * @api
-     * @return array
-     */
-    public static function getActiveTests()
-    {
-        return self::$_active_tests;
-    }
-
-    /**
-     * Returns whether any A/B tests are running or not.
-     *
-     * @since 0.0.1
-     *
-     * @api
-     * @return array
-     */
-    public static function getIsRunning()
-    {
-        return self::$_is_running;
-    }
-
-    /**
-     * Splits a user into cohorts for currently active tests. This updates the 
-     * session data used in Magento.
-     *
-     * @since 0.0.1
-     *
-     * @return void
-     */
-    protected function _split_user_into_cohorts()
-    {
-        # We only want to write session data if the user has new cohort 
-        # information - we don't want to write the same session data each time 
-        # an event fires.
-        $_session_data_has_changed = FALSE;
-
-        $cohort_data = $this->_session->getCohortData();
-
-        if ( ! $cohort_data)
-        {
-            # They're not in any cohorts - create an empty array.
-            $cohort_data = array();
-        }
-
-        foreach (self::$_active_tests as $test_id => $data)
-        {
-            # Force the user into a cohort, if possible
-            if (isset($_GET['_abtest_'.$test_id]))
-            {
-                $_session_data_has_changed = TRUE;
-                $cohort_data[$test_id] = array('variation' => $_GET['_abtest_'.$test_id]);
-                continue;
-            }
-
-            # User has already been segmented for this test
-            if (isset($cohort_data[$test_id]))
-            {
-                # Wait a sec - is the visitor returning on a new day? If so, 
-                # we're going to need to assign a new hit because we increase 
-                # the day's visitor count if the visitor returns after a break.
-                $last_timestamp = strtotime($cohort_data[$test_id]['date']);
-                $current_timestamp = strtotime(date('Y-m-d'));
-                if ($last_timestamp < $current_timestamp)
-                {
-                    $this->_register_visitor_hit($test_id, $cohort_data[$test_id]['variation']);
-                    $_session_data_has_changed = TRUE;
-                }
-
-                continue;
-            }
-
-            # We've udpated the session data with the below code and need 
-            # to save it
-            $_session_data_has_changed = TRUE;
-
-            # We need to ge tthe table name that we're updating
-            $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
-            $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
-
-            $seed = mt_rand(1,100);
-
-            # We need to loop through each variation to get the cumulative 
-            # percentage - when the seed is lower than the cumulative 
-            # percentage we're in that cohort.
-            # IE: $seed = 20 and Version A takes 50%: We're in A (20 <=50)
-            #     $seed = 92, Version A: 50%, Version b: 50%:
-            #       We're in B (92 <= (50 + 50))
-            $current_percentage = 0;
-            foreach ($data['variations'] as $variation)
-            {
-                $current_percentage += $variation['split_percentage'];
-
-                if ($seed <= $current_percentage)
-                {
-                    $cohort_data[$test_id] = array(
-                        'variation' => $variation['id'],
-                        'date'      => date('Y-m-d')
-                    );
-
-                    $this->_register_visitor_hit($test_id, $variation['id']);
-                    $this->_sql_queries .= ' UPDATE `'.$variation_table.'` SET visitors = visitors + 1, conversion_rate = ((conversions / visitors) * 100) WHERE id = '.$variation['id'].'; ';
-                    $this->_sql_queries .= ' UPDATE `'.$test_table.'` SET visitors = visitors + 1 WHERE id = '.$test_id.'; ';
-                    break;
-                }
-            }
-        }
-
-        if ($_session_data_has_changed)
-        {
-            $this->_sql_queries = trim($this->_sql_queries);
-            if ($this->_sql_queries && $this->_sql_queries != '')
-            {
-                $write = Mage::getSingleton('core/resource')->getConnection('core/write');
-                $write->query($this->_sql_queries);
-                $this->_sql_queries = '';
-            }
-
-            $this->_session->setCohortData($cohort_data);
-        }
+        Mage::helper('abtest/visitor')->assignVariations();
     }
 
     /**
      * We register visits on a daily basis so we can show accurate graphs on the 
      * view test page.
-     *
-     * A new visit must be registered when either:
-     *   - A new visitor arrives on the site and is separated into a cohort
-     *   - Each day a visitor returns to the website, even if they are already 
-     *     separated into a cohort.
      *
      * @since 0.0.1
      *
@@ -244,111 +37,15 @@ class THB_ABTest_Model_Observer {
      */
     protected function _register_visitor_hit($test_id, $variation_id)
     {
+        $optimizer = Mage::helper('abtest/optimizer');
+
+        $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+        $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
         $hit_table       = Mage::getSingleton('core/resource')->getTableName('abtest/hit');
 
-        $this->_sql_queries .= ' INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `visitors`) VALUES ('.$test_id.', '.$variation_id.', "'.date('Y-m-d').'", 1) ON DUPLICATE KEY UPDATE `visitors` = `visitors` + 1; ';
-    }
-
-    /**
-     * Returns variation information for a test. The test is found by passing the 
-     * test's observer name. The data returned is in the format:
-     *
-     * @since 0.0.1
-     *
-     * @param  string   current test's observer name
-     * @return array    array of variation information
-     */
-    public function get_variation_from_target($observer_name)
-    {
-        if ($variation = $this->_get_visitor_variation($observer_name, 'observer_target'))
-        {
-            # Get the table name for variation before we loop
-            $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
-            $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
-            $hit_table       = Mage::getSingleton('core/resource')->getTableName('abtest/hit');
-
-            $this->_sql_queries .= ' UPDATE `'.$variation_table.'` SET views = views + 1 WHERE id = '.$variation['id'].'; ';
-            $this->_sql_queries .= ' UPDATE `'.$test_table.'` SET views = views + 1 WHERE id = '.$variation['test_id'].'; ';
-
-            # Add an upsert to our hit table to increase the views (not visitors)
-            $this->_sql_queries .= ' INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `views`) VALUES ('.$variation['test_id'].', '.$variation['id'].', "'.date('Y-m-d').'", 1) ON DUPLICATE KEY UPDATE `views` = `views` + 1; ';
-
-            return $variation;
-        }
-
-        return FALSE;
-    }
-
-    /**
-     * Gets a variation from a conversion observer.
-     *
-     * @since 0.0.1
-     *
-     * @param  string   current test's observer name
-     * @return array    array of variation information
-     */
-    public function get_variation_from_conversion($observer_name)
-    {
-        return $this->_get_visitor_variation($observer_name, 'observer_conversion');
-    }
-
-    /**
-     * Returns variation information for a test. The test is found by passing the 
-     * test's observer name and the type of observer you're looking for (either
-     * a test page or a conversion event). The data returned is in the format:
-     *
-     * Note that this uses the current visitor's session information to return 
-     * the correct variant
-     *
-     * array(
-     *   'id'               => $variation_id,
-     *   'test_id'          => $test_id,
-     *   'is_control'       => bool,  // Whether this is the standard template
-     *   'layout_update'    => '...', // XML updates if not default template
-     *   'split_percentage' => int,   // Percentage of people in this cohort
-     *   'visitors'         => int,   // Number of visitors in $variation
-     *   'views'            => int,   // Number of views in $variation_id
-     *   'conversions'      => int,   // Number of conversions from $variation_id
-     *   'total_value'      => float, // Total sales value from $variation_id,
-     *   'is_winner'        => bool,
-     * );
-     *
-     * @since 0.0.1
-     *
-     * @param string  The event name to find a variation for
-     * @param enum    Either observer_target or observer_coversion, depending on 
-     *                whether you're looking for a variation from a conversion 
-     *                or a test page
-     * @return array
-     */
-    protected function _get_visitor_variation($observer_name, $source = 'observer_target')
-    {
-        $session = Mage::getSingleton('core/session', array('name' => 'frontend'));
-
-        # Loop through all active tests to find one with a target/conversion 
-        # observer matching $observer_name
-        foreach (self::$_active_tests as $test)
-        {
-            if ($test[$source] == $observer_name)
-            {
-                # This is the test we're looking for, so we're going to get the 
-                # ID of the variation for this user
-                $variation_id = $session['cohort_data'][$test['id']]['variation'];
-
-                # Loop through all of the test's variations to find the matching 
-                # variation information, then return the complete variation 
-                # array of information
-                foreach ($test['variations'] as $variation)
-                {
-                    if ($variation['id'] == $variation_id)
-                    {
-                        return $variation;
-                    }
-                }
-            }
-        }
-
-        return FALSE;
+        $optimizer->addQuery('INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `visitors`) VALUES ('.$test_id.', '.$variation_id.', "'.date('Y-m-d').'", 1) ON DUPLICATE KEY UPDATE `views` = `views` + 1');
+        $optimizer->addQuery('UPDATE `'.$variation_table.'` SET views = views + 1 WHERE id = '.$variation_id);
+        $optimizer->addQuery('UPDATE `'.$test_table.'` SET views = views + 1 WHERE id = '.$test_id);
     }
 
     /**
@@ -363,19 +60,34 @@ class THB_ABTest_Model_Observer {
      */
     public function run_target_event($observer)
     {
-        if ( ! self::getIsRunning())
-            return;
-
-        # Get our event name for the method we're running, plus the cohort data 
-        # for the event
+        # Get our event name for the method we're running
         $event_name = $observer->getEvent()->getName();
-        $cohort = $this->get_variation_from_target($event_name);
+
+        # If we're previewing layout update XML we need to skip loading 
+        # a variation. This will return FALSE and run the inner block if there's 
+        # no preview.
+        $layout_update = Mage::helper('abtest/visitor')->getPreviewXml($event_name);
+
+        if ($layout_update === FALSE)
+        {
+            # Check if the test is running then, if so, load our variation and 
+            # register a hit
+            if ( ! Mage::helper('abtest')->getIsRunning())
+                return;
+
+            $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($event_name);
+
+            # Register a hit for this variation/test
+            $this->_register_visitor_hit($variation['test_id'], $variation['id']);
+
+            $layout_update = $variation['layout_update'];
+        }
 
         # Call our event method to manipulate any data for the test
-        call_user_func_array(array($this, '_run_'.$event_name), array($observer, $cohort));
+        call_user_func_array(array($this, '_run_'.$event_name), array($observer, $layout_update));
 
         # Run our SQL queries
-        $this->_run_queries();
+        Mage::helper('abtest/optimizer')->runQueries();
     }
 
     /**
@@ -390,12 +102,12 @@ class THB_ABTest_Model_Observer {
      * @param array  Cohort information
      * @return void
      */
-    protected function _run_catalog_controller_product_view($observer, $cohort)
+    protected function _run_catalog_controller_product_view($observer, $layout_update)
     {
-        if ($cohort && $cohort['layout_update'])
+        if ($layout_update)
         {
             $custom_updates = $observer->getProduct()->getCustomLayoutUpdate();
-            $observer->getProduct()->setCustomLayoutUpdate($custom_updates.$cohort['layout_update']);
+            $observer->getProduct()->setCustomLayoutUpdate($custom_updates.$layout_update);
         }
     }
 
@@ -409,10 +121,10 @@ class THB_ABTest_Model_Observer {
      */
     public function onepage_success()
     {
-        if ( ! self::$_is_running)
+        if ( ! Mage::helper('abtest')->getIsRunning())
             return;
 
-        $cohort = $this->get_variation_from_conversion('checkout_onepage_controller_success_action');
+        $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName('checkout_onepage_controller_success_action', 'observer_conversion');
 
         if (Mage::getConfig() !== NULL)
         {
@@ -436,7 +148,7 @@ class THB_ABTest_Model_Observer {
             $order = $read->fetchRow('SELECT entity_id, grand_total FROM sales_flat_order WHERE increment_id = '.$incrementId);
 
             // Add our conversions
-            $this->_register_conversion($cohort, $order['grand_total'], $order['entity_id']);
+            $this->_register_conversion($variation, $order['grand_total'], $order['entity_id']);
         }
         catch (Exception $e) {
             # This is observer is run up to 6 times, and this is an error thrown by a unique constraint in the DB.
@@ -455,10 +167,10 @@ class THB_ABTest_Model_Observer {
     {
         # This runs every time a product is added, regardless of whether or not 
         # an AB test is running.
-        if ( ! self::$_is_running)
+        if ( ! Mage::helper('abtest')->getIsRunning())
             return;
 
-        $variation = $this->get_variation_from_conversion($observer->getEvent()->getName());
+        $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion');
 
         # Get the price of our item. We don't use the product's price or final 
         # price because this may be a bundled or configurable product: these 
@@ -501,22 +213,11 @@ class THB_ABTest_Model_Observer {
         $write->query($query);
     }
 
-    /**
-     * Write all of the logged queries to the database at the end of the 
-     * observer's lifespan.
-     *
-     * @since 0.0.1
-     *
-     * @return void
-     */
-    protected function _run_queries()
+    public function preview_layout($observer)
     {
-        $this->_sql_queries = trim($this->_sql_queries);
-        if ($this->_sql_queries && $this->_sql_queries != '')
+        if ($data = Mage::getSingleton('core/cookie')->get('test_preview'))
         {
-            $write = Mage::getSingleton('core/resource')->getConnection('core/write');
-            $write->query($this->_sql_queries);
+            $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="after_body_start"><block type="core/template" template="abtest/preview.phtml" /></reference>');
         }
     }
-
 }

@@ -14,4 +14,5 @@ class THB_ABTest_Block_Adminhtml_View_Graph extends Mage_Adminhtml_Block_Templat
     {
         return $this->_test;
     }
+
 }

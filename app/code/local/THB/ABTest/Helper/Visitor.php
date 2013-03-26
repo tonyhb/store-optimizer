@@ -1,0 +1,313 @@
+<?php
+
+/**
+ * 
+ *
+ * @since 0.0.1
+ */
+class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
+{
+    /**
+     * Holds the user's variation settings for each test, in the format:
+     *
+     *   array(
+     *     $test_id => array(
+     *        'variation' => $variation_id,
+     *        'last_seen' => $date_last_seen,
+     *     ),
+     *     ...
+     *   )
+     *
+     * @since 0.0.1
+     * @var array
+     */
+    protected $_variations = NULL;
+
+    /**
+     * Assigns variations to the current visitor for all running tests.
+     *
+     * @since 0.0.1
+     * @return bool
+     */
+    public function assignVariations()
+    {
+        # Used in optimizing SQL queries to update variation/test stats
+        $optimizer = Mage::helper('abtest/optimizer');
+
+        # We only want to write session data if the user has new cohort 
+        # information - we don't want to write the same session data each time 
+        # an event fires.
+        $_session_data_has_changed = FALSE;
+
+        # Ensure we've got all of the visitor's variations
+        $this->getAllVariations();
+
+        foreach (Mage::helper('abtest')->getActiveTests() as $test_id => $data)
+        {
+            if ($this->hasVariation($test_id) && ! isset($_GET['__t_'.$test_id]))
+            {
+                # If the user has a variation and we're not forcing a new one, 
+                # skip it. The observer model tracks all hits, so we've got 
+                # nothing to do. Note, we could do an OR above and remove this 
+                # entirely but it's here for documentation purposes.
+            }
+            else
+            {
+                # Assign the visitor's variation - this will either randomise or 
+                # force a variation depending on the get parameter. 
+                $this->assignVariation($test_id, $data['variations'], FALSE);
+                $_session_data_has_changed = TRUE;
+            }
+        }
+
+        if ($_session_data_has_changed)
+        {
+            # Write our cached DB queries and our session data
+            $this->_writeVariationData();
+            $optimizer->runQueries();
+        }
+    }
+
+    /**
+     * Assigns a variation to a visitor for a particular test.
+     *
+     * @since  0.0.1
+     * @param  int    Test ID to assign variation for
+     * @param  array  Array of variations as returned by the Data helper's
+     *                `getActiveTests` method
+     * @param  bool   Whether to write session data immediately. Defaults to 
+     *                TRUE; used to optimise A/B testing for a new visitor so 
+     *                we can write data once.
+     * @return bool
+     */
+    public function assignVariation($test_id, $variations, $write_session_data = TRUE)
+    {
+        if (isset($_GET['__t_'.$test_id]))
+        {
+            # The forced variation doesn't exist...
+            if ( ! array_key_exists($_GET['__t_'.$test_id], $variations))
+                return FALSE;
+
+            # We have got a GET parameter which ensures a visitor gets a particular 
+            # version (useful for client links).
+            $this->_assignVariation($test_id, $_GET['__t_'.$test_id]);
+        }
+        else
+        {
+            # Randomly assign the visitor to a variation depending on the split 
+            # percentage settings.
+            # We need to loop through each variation to get the cumulative 
+            # percentage - when the seed is lower than the cumulative 
+            # percentage we're in that cohort.
+            # IE: $seed = 20 and Version A takes 50%: We're in A (20 <=50)
+            #     $seed = 92, Version A: 50%, Version b: 50%:
+            #       We're in B (92 <= (50 + 50))
+            $seed = mt_rand(1,100);
+            $current_percentage = 0;
+            foreach ($variations as $variation)
+            {
+                $current_percentage += $variation['split_percentage'];
+
+                if ($seed <= $current_percentage)
+                {
+                    $this->_assignVariation($test_id, $variation['id']);
+                    break;
+                }
+            }
+        }
+
+        if ($write_session_data)
+        {
+            $this->_writeVariationData();
+        }
+    }
+
+    /**
+     * Adds the variation information to the $_variations property, and adds the 
+     * necessary statistics to the database.
+     *
+     * This is a helper method to keep things DRY.
+     *
+     * @since 0.0.1
+     * @param int   Test ID to assign
+     * @param int   Variation ID to assign
+     * @return void
+     */
+    private function _assignVariation($test_id, $variation_id)
+    {
+        $this->_variations[$test_id] = array(
+            'variation' => $variation_id,
+            'last_seen' => date('Y-m-d'),
+        );
+
+        # @TODO: Add IP Ignore checks to this DB query statement...
+        # Add a new visitor to our variation and update the conversion rate 
+        # accordingly.
+        $optimizer       = Mage::helper('abtest/optimizer');
+        $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+        $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
+        $hit_table       = Mage::getSingleton('core/resource')->getTableName('abtest/hit');
+
+        $optimizer->addQuery('INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `visitors`) VALUES ('.$test_id.', '.$variation_id.', "'.date('Y-m-d').'", 1) ON DUPLICATE KEY UPDATE `visitors` = `visitors` + 1');
+        $optimizer->addQuery('UPDATE `'.$variation_table.'` SET visitors = visitors + 1, conversion_rate = ((conversions / visitors) * 100) WHERE id = '.$variation_id);
+        $optimizer->addQuery('UPDATE `'.$test_table.'` SET visitors = visitors + 1 WHERE id = '.$test_id);
+    }
+
+    /**
+     * Adds the contents of our $_variations property to the user's session
+     *
+     * @since 0.0.1
+     */
+    private function _writeVariationData()
+    {
+        Mage::getSingleton('core/session', array('name' => 'frontend'))->setCohortData($this->_variations);
+    }
+
+    /**
+     * Returns TRUE or FALSE depending on whether the user has a variation set 
+     * for the current test.
+     *
+     * @since 0.0.1
+     * @param  int   Test ID
+     * @return bool  True or false depending on whether a variation has 
+     *               previously been set.
+     */
+    public function hasVariation($test_id)
+    {
+        return array_key_exists($test_id, $this->getAllVariations());
+    }
+
+    /**
+     * Gets the user's entire A/B testing variation data
+     *
+     * @since 0.0.1
+     *
+     * @return array
+     */
+    public function getAllVariations()
+    {
+        # We've already queried the DB for our session data; don't do it again.
+        if ($this->_variations !== NULL)
+            return $this->_variations;
+
+        $this->_variations = Mage::getSingleton('core/session', array('name' => 'frontend'))->getCohortData();
+
+        if ($this->_variations == FALSE)
+            $this->_variations = array();
+
+        return $this->_variations;
+    }
+
+    /**
+     * Gets the visitor's variation for a given test.
+     *
+     * The argument for this method should be the test ID, but can also be the 
+     * observer name for a test. If the observer name is passed, the method 
+     * delegates to getVariationFromObserverName and returns the result.
+     *
+     * @since 0.0.1
+     *
+     * @return mixed
+     */
+    public function getVariation($test_id)
+    {
+        $this->getAllVariations();
+
+        if ( ! is_int($test_id) && (int) $test_id == 0)
+        {
+            # We've most likely passed an observer name as the property, so we 
+            # can call that method and return the result.
+            return $this->getVariationFromObserverName($test_id);
+        }
+
+        # @TODO: Ensure return is the same as getVariationFromObserverName
+        return $this->_variations[$test_id];
+    }
+
+    /**
+     * Gets the visitor's assigned variation by looking through all running 
+     * tests for a matching observer.
+     *
+     * The default observer to look for is the target - the actual 
+     * observer/event we're A/B testing. This can be changed to 
+     * 'observer_conversion' to find the variation from the conversion event.
+     *
+     * The variation data returned is in the following format:
+     * array(
+     *   'id'               => $variation_id,
+     *   'test_id'          => $test_id,
+     *   'is_control'       => bool,  // Whether this is the standard template
+     *   'layout_update'    => '...', // XML updates if not default template
+     *   'split_percentage' => int,   // Percentage of people in this cohort
+     *   'visitors'         => int,   // Number of visitors in $variation
+     *   'views'            => int,   // Number of views in $variation_id
+     *   'conversions'      => int,   // Number of conversions from $variation_id
+     *   'total_value'      => float, // Total sales value from $variation_id,
+     *   'is_winner'        => bool,
+     * );
+     *
+     * @since 0.0.1
+     *
+     * @return mixed
+     */
+    public function getVariationFromObserverName($observer_name, $source = 'observer_target')
+    {
+        # Load our session data first
+        $this->getAllVariations();
+
+        foreach (Mage::helper('abtest')->getActiveTests() as $test)
+        {
+            if ($test[$source] == $observer_name)
+            {
+                # This is the test we're looking for, so we're going to get the 
+                # ID of the variation for this user
+                $variation_id = $this->_variations[$test['id']]['variation'];
+
+                # Loop through all of the test's variations to find the matching 
+                # variation information, then return the complete variation 
+                # array of information
+                foreach ($test['variations'] as $variation)
+                {
+                    if ($variation['id'] == $variation_id)
+                    {
+                        return $variation;
+                    }
+                }
+            }
+        }
+
+        return FALSE;
+    }
+
+    public function getPreview()
+    {
+        if ($cookie = Mage::getSingleton('core/cookie')->get('test_preview'))
+        {
+            return Mage::helper('core')->jsonDecode($cookie);
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * Loads layout updates when previewing a variation. The layout information 
+     * is extracted from the 'test_preview' cookie. If this cookie doesn't exist 
+     * we return FALSE.
+     *
+     * @since 0.0.1
+     *
+     * @param  string  Observer name to load preview for
+     * @return mixed
+     */
+    public function getPreviewXml($observer_event_name)
+    {
+        if ($cookie = $this->getPreview())
+        {
+            if ($observer_event_name == $cookie['observer'])
+                return $cookie['xml'];
+        }
+
+        return FALSE;
+    }
+
+}

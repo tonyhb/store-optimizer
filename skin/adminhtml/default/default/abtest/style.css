@@ -36,6 +36,9 @@
 	#view-test .unlikely, #view-test .worst, #view-test .worse {
 		color: #e90012;
 	}
+	#view-test .infinity {
+		font-size: 16px;
+	}
 	#view-test .worse {
 		font-weight: bold;
 	}

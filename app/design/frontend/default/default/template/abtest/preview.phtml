@@ -1,0 +1,55 @@
+<?php $preview = Mage::helper('abtest/visitor')->getPreview(); ?>
+<?php
+    $time = (strtotime($preview['init_at']) + 600) - time();
+    $minutes = floor($time / 60);
+    (string) $seconds = $time - ($minutes * 60);
+    if (strlen($seconds) == 1) {
+        $seconds = '0'.$seconds;
+    }
+
+    $secret = "abtest" . "exitPreview" . $preview['key'];
+    $key = Mage::helper('core')->getHash($secret);
+
+    $exit_url = Mage::getModel('core/url')->getUrl("adminhtml/abtest/exitPreview", array(Mage_Adminhtml_Model_Url::SECRET_KEY_PARAM_NAME => $key));
+?>
+<div id='thb_abtest_preview' style='background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAABHCAMAAAD1Pw33AAAAD1BMVEXt7e3q6urV1dXY2Nj19PJ0Uk+eAAAAKElEQVR42s3GwQkAMAwDsTs7+89cSnYo/QhRgOXpA1w0RDF+c2ZoewCCAwEENB1piwAAAABJRU5ErkJggg==); padding: 3px 0; height: 66px; text-transform: uppercase; font: 10px/1.2 Helvetica, Arial, sans-serif; text-align: left; color: #777;'>
+
+    <div style='width: 800px; display:block; margin: 0 auto;'>
+        <div style='padding: 4px 0 6px 0; border-bottom: 1px solid #ccc;'>
+            <span>Previewing an A/B test</span>
+            <span style="float:right">
+                <!--<a onclick="preview.edit()" href="#" style="font-size: 10px; color: #1e7ec8; text-decoration: none">View or edit layout XML</a> &nbsp; | &nbsp; -->
+                <a onclick="preview.hide()" href="#" style="font-size: 10px; color: #1e7ec8; text-decoration: none">Hide this bar</a> &nbsp; | &nbsp; 
+                <a href="<?php echo $exit_url ?>" style="font-size: 10px; color: #1e7ec8; text-decoration: none">Exit preview</a>
+            </span>
+        </div>
+
+        <div style='padding-top: 8px; border-top: 1px solid #fff; width: 800px'>
+            <div style='float: left; width: 33%'>
+                <span>Test name</a>
+                <p style='margin: 0; padding: 0; font-size: 14px; font-weight: bold'><?php echo $preview['test_name'] ?></p>
+            </div>
+            <div style='float: left; width: 33%; text-align: center;'>
+                <span>Variation name</a>
+                <p style='margin: 0; padding: 0; font-size: 14px; font-weight: bold'><?php echo $preview['variation_name'] ?></p>
+            </div>
+            <div style='float: right; width: 33%; text-align: right'>
+                <span>Preview time left</a>
+                <p style='margin: 0; padding: 0; font-size: 14px; font-weight: bold'><?php echo $minutes ?>:<?php echo $seconds ?></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  (function(w, d) {
+      w.preview = {};
+
+      w.preview.hide = function() {
+          var el = d.getElementById('thb_abtest_preview');
+          el.parentNode.removeChild(el);
+          return false;
+      }
+
+  })(window, document);
+</script>

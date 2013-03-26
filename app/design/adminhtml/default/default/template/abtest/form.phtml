@@ -15,7 +15,7 @@
     <script type="text/javascript">
         abTestForm = new varienForm('abtest_form', '');
         delete window.console;
-        (function() {
+        (function(d) {
             var abTest = {
                 cohorts: 2,
                 controlTraffic: 70,
@@ -40,6 +40,35 @@
                     });
 
                     $('split_traffic_evenly').observe('click', abTest.splitControlTrafficEvenly);
+
+                    // Preview XML
+                    $$('.preview-xml').each(function(el) {
+                        $(el).observe('click', function(event) { abTest.previewXml(el); });
+                    });
+
+                    $$('.cohort-name').each(function(input) {
+                        $(input).observe('blur', function(e) {
+                            var elements = $$('.' + e.target.getAttribute('id'));
+                            elements.each(function(el) {
+                                var i, span, c;
+                                // Replace the span's TEXT node with the new 
+                                // name
+                                for(i in el.childNodes) {
+                                    if (el.childNodes[i].nodeName != 'SPAN') continue;
+
+                                    // We've got the span, now modify the text 
+                                    // node
+                                    span = el.childNodes[i];
+                                    for (c in span.childNodes)
+                                    {
+                                        if (span.childNodes[c].nodeType == '3') {
+                                            span.childNodes[c].data = e.target.value;
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    });
                 },
 
                 // Shows the right amount of variant tabs on the left hand side.
@@ -102,12 +131,12 @@
 
                     if (abTest.cohorts == 2) {
                         traffic = (100 - abTest.controlTraffic);
-                        $('note_el_control_traffic').innerHTML = "<span>The variant gets <b>" + traffic + "%</b> of the traffic</span>";
+                        $('note_el_control_traffic').innerHTML = "<span>The variation gets <b>" + traffic + "%</b> of the traffic</span>";
                     } else {
                         // Could be a recurring decimal
                         traffic = ((100 - abTest.controlTraffic) / (abTest.cohorts - 1));
                         traffic = Math.round(traffic * 100) / 100;
-                        $('note_el_control_traffic').innerHTML = "<span>Each variant gets <b>" + traffic + "%</b> of the traffic</span>";
+                        $('note_el_control_traffic').innerHTML = "<span>Each variation gets <b>" + traffic + "%</b> of the traffic</span>";
                     }
 
                     $('cohort_Control_percentage').value = abTest.controlTraffic;
@@ -117,10 +146,36 @@
                     for (i = 0; i < (abTest.cohorts - 1); i++) {
                         $('cohort_' + cohorts[i] + '_percentage').value = traffic;
                     }
+                },
+
+                previewXml: function(button_el) {
+                    var xml, variation, cohort = button_el.getAttribute('data-cohort');
+
+                    xml = d.getElementById(cohort + '_xml').value;
+                    xml = xml.replace(/(\r\n|\n|\r)/gm, "");
+
+                    variation = d.getElementById(cohort + '_name').value;
+
+                    // Post a new request to the preview action with our xml, 
+                    // observer, and test name, then open a new window.
+                    new Ajax.Request(
+                        '<?php echo Mage::helper('adminhtml')->getUrl('*/abtest/preview/') ?>',
+                        {
+                            method: 'post',
+                            asynchronous: false,
+                            parameters: {
+                                xml: xml,
+                                observer: d.getElementById('el_target_observer').value,
+                                test_name: d.getElementById('el_test_name').value,
+                                variation_name: variation
+                            }
+                        }
+                    );
+                    window.open('<?php echo Mage::getStoreConfig('web/unsecure/base_url') ?>', 'preview');
                 }
             };
 
             abTest.init();
-        })();
+        })(document);
     </script>
 </div>
