@@ -30,7 +30,10 @@
         <table cellspacing="0" class="form-list" style="width:100%; margin-top: 10px;">
         <tbody>
             <tr>
-                <td class="value">Layout Update XML<?php if ($this->getCohort() == 'Control'): ?> (typically left blank for the control)<?php endif; ?>:</td>
+                <td class="value">
+                    Layout Update XML<?php if ($this->getCohort() == 'Control'): ?> (typically left blank for the control)<?php endif; ?>:
+                    <button title="Reset" type="button" data-cohort="cohort_<?php echo $this->getCohort(); ?>" style="float: right" class="scalable preview-xml" style=""><span><span><span>Preview</span></span></span></button>
+                </td>
             </tr>
             <tr>
                 <td class="value">

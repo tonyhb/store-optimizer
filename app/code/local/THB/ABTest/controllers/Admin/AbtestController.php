@@ -119,29 +119,24 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
                 'key'            => Mage::getSingleton('core/session')->getFormKey(),
             );
         }
+        else if ($data = $this->getRequest()->getPost())
+        {
+            $data = array(
+                'init_at'        => date('Y-m-d H:i:s'),
+                'observer'       => $data['observer'],
+                'xml'            => $data['xml'],
+                'variation_name' => $data['variation_name'],
+                'test_name'      => 'Unsaved test',
+                'running'        => FALSE, # Is this test running already?
+                'key'            => Mage::getSingleton('core/session')->getFormKey(),
+            );
+        }
 
         $data = Mage::helper('core')->jsonEncode($data);
 
         Mage::getSingleton('core/cookie')->set('test_preview', $data, 600);
 
         $this->_redirectUrl(Mage::getStoreConfig('web/unsecure/base_url'));
-
-        # 1. Load the variation's XML
-        # 2. Inject into the user's session under 'abtest_preview', with the 
-        #    following format:
-        #      array(
-        #        'init_at' => date('Y-m-d H:m:s'),
-        #        'xml'     => '...',
-        #      )
-        # 3. Hook into an event that's called on every page request where the 
-        #    layout object is initialised
-        # 4. Open a new tab with the homepage of the site
-        # 5. Show a bar at the top of any frontend request showing that a user
-        #    is previewing a variation. Show:
-        #      - The variation name
-        #      - A button to quit the preview
-        #      - The time remaining on the preview
-        # 6. Make the preview expire after 5 minutes (definable by options)
     }
 
     public function exitPreviewAction()

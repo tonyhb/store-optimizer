@@ -15,7 +15,7 @@
     <script type="text/javascript">
         abTestForm = new varienForm('abtest_form', '');
         delete window.console;
-        (function() {
+        (function(d) {
             var abTest = {
                 cohorts: 2,
                 controlTraffic: 70,
@@ -40,6 +40,11 @@
                     });
 
                     $('split_traffic_evenly').observe('click', abTest.splitControlTrafficEvenly);
+
+                    // Preview XML
+                    $$('.preview-xml').each(function(el) {
+                        $(el).observe('click', function(event) { abTest.previewXml(el); });
+                    });
 
                     $$('.cohort-name').each(function(input) {
                         $(input).observe('blur', function(e) {
@@ -141,10 +146,36 @@
                     for (i = 0; i < (abTest.cohorts - 1); i++) {
                         $('cohort_' + cohorts[i] + '_percentage').value = traffic;
                     }
+                },
+
+                previewXml: function(button_el) {
+                    var xml, variation, cohort = button_el.getAttribute('data-cohort');
+
+                    xml = d.getElementById(cohort + '_xml').value;
+                    xml = xml.replace(/(\r\n|\n|\r)/gm, "");
+
+                    variation = d.getElementById(cohort + '_name').value;
+
+                    // Post a new request to the preview action with our xml, 
+                    // observer, and test name, then open a new window.
+                    new Ajax.Request(
+                        '<?php echo Mage::helper('adminhtml')->getUrl('*/abtest/preview/') ?>',
+                        {
+                            method: 'post',
+                            asynchronous: false,
+                            parameters: {
+                                xml: xml,
+                                observer: d.getElementById('el_target_observer').value,
+                                test_name: d.getElementById('el_test_name').value,
+                                variation_name: variation
+                            }
+                        }
+                    );
+                    window.open('<?php echo Mage::getStoreConfig('web/unsecure/base_url') ?>', 'preview');
                 }
             };
 
             abTest.init();
-        })();
+        })(document);
     </script>
 </div>
