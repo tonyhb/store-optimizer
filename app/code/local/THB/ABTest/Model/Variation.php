@@ -107,7 +107,14 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
 
         if ($this->getData('conversion_rate') < $original_rate)
         {
-            return '<span class="worse">-'.$improvement.'%</span>';
+            if ($this->getData('conversion_rate') == 0)
+            {
+                return '<span class="worse">N/A</span>';
+            }
+            else
+            {
+                return '<span class="worse">-'.$improvement.'%</span>';
+            }
         }
 
         return '<span class="conversion-improvement">'.$improvement.'%</span>';
