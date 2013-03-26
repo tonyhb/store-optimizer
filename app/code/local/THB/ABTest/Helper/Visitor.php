@@ -7,6 +7,8 @@
  */
 class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
 {
+    const COOKIE_KEY = '3uI.Gd$QvHG},}(l';
+
     /**
      * Holds the user's variation settings for each test, in the format:
      *
@@ -62,7 +64,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
 
         if ($_session_data_has_changed)
         {
-            # Write our cached DB queries and our session data
+            # Write our cached DB queries
             $this->_writeVariationData();
             $optimizer->runQueries();
         }
@@ -160,7 +162,11 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      */
     private function _writeVariationData()
     {
-        Mage::getSingleton('core/session', array('name' => 'frontend'))->setCohortData($this->_variations);
+        $data = Mage::helper('core')->jsonEncode($this->_variations);
+        $data = mcrypt_encrypt(MCRYPT_CAST_128, self::COOKIE_KEY, $data, MCRYPT_MODE_ECB);
+        $data = base64_encode($data);
+
+        Mage::getSingleton('core/cookie')->set('cohort_data', $data, (86400 * 365));
     }
 
     /**
@@ -190,10 +196,18 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         if ($this->_variations !== NULL)
             return $this->_variations;
 
-        $this->_variations = Mage::getSingleton('core/session', array('name' => 'frontend'))->getCohortData();
+        $data = Mage::getSingleton('core/cookie')->get('cohort_data');
 
-        if ($this->_variations == FALSE)
+        if ($data == FALSE)
+        {
             $this->_variations = array();
+        }
+        else
+        {
+            $data = base64_decode($data);
+            $data = mcrypt_decrypt(MCRYPT_CAST_128, self::COOKIE_KEY, $data, MCRYPT_MODE_ECB);
+            $this->_variations = Mage::helper('core')->jsonDecode($data);
+        }
 
         return $this->_variations;
     }
