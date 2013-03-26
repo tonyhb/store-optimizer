@@ -52,6 +52,14 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
                 # skip it. The observer model tracks all hits, so we've got 
                 # nothing to do. Note, we could do an OR above and remove this 
                 # entirely but it's here for documentation purposes.
+
+                # Update the last seen date
+                $data = $this->getVariation($test_id);
+                if (strtotime(date('Y-m-d')) > strtotime($data['last_seen']))
+                {
+                    $this->_variations[$test_id]['last_seen'] = date('Y-m-d');
+                    $_session_data_has_changed = TRUE;
+                }
             }
             else
             {
