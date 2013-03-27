@@ -106,8 +106,62 @@ class THB_ABTest_Model_Observer {
     {
         if ($layout_update)
         {
-            $custom_updates = $observer->getProduct()->getCustomLayoutUpdate();
-            $observer->getProduct()->setCustomLayoutUpdate($custom_updates.$layout_update);
+            $product = $observer->getProduct();
+
+            # An admin can add custom layout updates to the product, so we need to 
+            # be careful not to override them. They can also set dates that the 
+            # custom layout update & custom theme work between - if the dates are in 
+            # the past we need to remove the old settings, change the date and add 
+            # only our custom layout update to get these to work.
+            $custom_design_date = $product->getCustomDesignDate();
+            if ($custom_design_date['to'] != NULL)
+            {
+                # Is the design date in the past? If so, remove all of the 
+                # custom settings...
+                if (strtotime($custom_design_date['to']) < time())
+                {
+                    $product->setCustomDesign('');
+                    $product->setPageLayout(NULL);
+                    $product->setCustomLayoutUpdate('');
+
+                    # Set the date to tomorrow so our variation XML works
+                    $product->setData('custom_design_to', date('Y-m-d H:i:s', strtotime('+1 day')));
+                }
+            }
+
+            $custom_updates = $product->getCustomLayoutUpdate();
+            $product->setCustomLayoutUpdate($custom_updates.$layout_update);
+        }
+    }
+
+    /**
+     * Updates the product page's layout using Custom Layout Updates 
+     * based upon the visitor's cohort.
+     *
+     * This is used for A/B testing product page designs.
+     *
+     * @since 0.0.1
+     *
+     * @param Varien_Event_Observer
+     * @param array  Cohort information
+     * @return void
+     */
+    protected function _run_cms_page_render($observer, $layout_update)
+    {
+        if ($layout_update)
+        {
+            # Custom layout updates take precedence over standard layout 
+            # updates. This means if we add to custom updates we'll stop any 
+            # layout updates an admin may have added... not good.
+            if ($custom_updates = $observer->getPage()->getCustomLayoutUpdateXml())
+            {
+                $observer->getPage()->setCustomLayoutUpdateXml($custom_updates.$layout_update);
+            }
+            else
+            {
+                $custom_updates = $observer->getPage()->getLayoutUpdateXml();
+                $observer->getPage()->setLayoutUpdateXml($custom_updates.$layout_update);
+            }
         }
     }
 

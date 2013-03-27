@@ -167,6 +167,16 @@
 				</observers>
 			</catalog_controller_product_view>
 
+			<!-- CMS page view test hook -->
+			<cms_page_render>
+				<observers>
+					<abtest>
+						<class>abtest/observer</class>
+						<method>run_target_event</method>
+					</abtest>
+				</observers>
+			</cms_page_render>
+
 			<!-- Checkout success hook -->
 			<checkout_onepage_controller_success_action>
 				<observers>
