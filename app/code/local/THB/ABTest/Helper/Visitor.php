@@ -181,6 +181,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
     private function _writeVariationData()
     {
         $data = Mage::helper('core')->jsonEncode($this->_variations);
+        $data = base64_encode($data);
         $data = mcrypt_encrypt(MCRYPT_CAST_128, self::COOKIE_KEY, $data, MCRYPT_MODE_ECB);
         $data = base64_encode($data);
 
@@ -224,6 +225,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         {
             $data = base64_decode($data);
             $data = mcrypt_decrypt(MCRYPT_CAST_128, self::COOKIE_KEY, $data, MCRYPT_MODE_ECB);
+            $data = base64_decode($data);
             $this->_variations = Mage::helper('core')->jsonDecode($data);
         }
 
