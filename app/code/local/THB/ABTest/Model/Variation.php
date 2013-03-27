@@ -102,6 +102,11 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
 
         $original_rate = $this->getControl()->getData('conversion_rate');
 
+        if ($this->getData('conversion_rate') == 0 OR $original_rate == 0)
+        {
+            return "<small>N/A</small>";
+        }
+
         $improvement = ($this->getData('conversion_rate') / $original_rate) * 100;
         $improvement = round($improvement, 2); 
 

@@ -17,6 +17,11 @@ class THB_ABTest_Helper_Statistics extends Mage_Core_Helper_Data
         $denominator = ($P * (1 - $P) / $N) + ($Pc * (1 - $Pc) / $Nc);
         $denominator = sqrt($denominator);
 
+        if ($denominator == 0 OR $X == 0)
+        {
+            return "<small>N/A</small>";
+        }
+
         $Z = $X / $denominator;
 
         # For single-tailed Z scores a level of 1.65 represents greater than 
