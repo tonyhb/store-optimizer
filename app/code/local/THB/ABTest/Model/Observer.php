@@ -28,27 +28,6 @@ class THB_ABTest_Model_Observer {
     }
 
     /**
-     * We register visits on a daily basis so we can show accurate graphs on the 
-     * view test page.
-     *
-     * @since 0.0.1
-     *
-     * @return void
-     */
-    protected function _register_visitor_hit($test_id, $variation_id)
-    {
-        $optimizer = Mage::helper('abtest/optimizer');
-
-        $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
-        $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
-        $hit_table       = Mage::getSingleton('core/resource')->getTableName('abtest/hit');
-
-        $optimizer->addQuery('INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `visitors`, `views`) VALUES ('.$test_id.', '.$variation_id.', "'.date('Y-m-d').'", 1, 1) ON DUPLICATE KEY UPDATE `views` = `views` + 1');
-        $optimizer->addQuery('UPDATE `'.$variation_table.'` SET views = views + 1 WHERE id = '.$variation_id);
-        $optimizer->addQuery('UPDATE `'.$test_table.'` SET views = views + 1 WHERE id = '.$test_id);
-    }
-
-    /**
      * Runs any time a target event happens, ie. a user visits a page we are 
      * testing. This gets the cohort information, then calls a method to 
      * manipulate any event information for the specific test.
@@ -234,6 +213,27 @@ class THB_ABTest_Model_Observer {
 
         # Get our table name for variations and update the row information
         $this->_register_conversion($variation, $price);
+    }
+
+    /**
+     * We register visits on a daily basis so we can show accurate graphs on the 
+     * view test page.
+     *
+     * @since 0.0.1
+     *
+     * @return void
+     */
+    protected function _register_visitor_hit($test_id, $variation_id)
+    {
+        $optimizer = Mage::helper('abtest/optimizer');
+
+        $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+        $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
+        $hit_table       = Mage::getSingleton('core/resource')->getTableName('abtest/hit');
+
+        $optimizer->addQuery('INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `visitors`, `views`) VALUES ('.$test_id.', '.$variation_id.', "'.date('Y-m-d').'", 1, 1) ON DUPLICATE KEY UPDATE `views` = `views` + 1');
+        $optimizer->addQuery('UPDATE `'.$variation_table.'` SET views = views + 1 WHERE id = '.$variation_id);
+        $optimizer->addQuery('UPDATE `'.$test_table.'` SET views = views + 1 WHERE id = '.$test_id);
     }
 
     /**
