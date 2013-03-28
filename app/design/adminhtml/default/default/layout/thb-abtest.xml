@@ -5,15 +5,13 @@
 		<reference name="head">
 			<action method="addItem">
 				<type>skin_css</type>
-				<file>abtest/style.css</file>
+				<script>abtest/style.css</script>
 			</action>
-			<action method="addItem">
-				<type>skin_js</type>
-				<file>abtest/raphael-2.1.0.min.js</file>
+			<action method="addJs">
+				<script>abtest/raphael-2.1.0.min.js</script>
 			</action>
-			<action method="addItem">
-				<type>skin_js</type>
-				<file>abtest/charts.min.js</file>
+			<action method="addJs">
+				<script>abtest/charts.min.js</script>
 			</action>
 		</reference>
 	</default>

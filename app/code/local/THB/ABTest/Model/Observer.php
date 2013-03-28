@@ -35,12 +35,17 @@ class THB_ABTest_Model_Observer {
      * @since 0.0.1
      * 
      * @param Varien_Event_Observer
+     * @param string  Event to match in the test's observer_target field
      * @return void
      */
-    public function run_target_event($observer)
+    public function run_target_event($observer, $event_name = NULL)
     {
         # Get our event name for the method we're running
-        $event_name = $observer->getEvent()->getName();
+        if ($event_name == NULL)
+        {
+            # Run from an observer - use the observer's name
+            $event_name = $observer->getEvent()->getName();
+        }
 
         # If we're previewing layout update XML we need to skip loading 
         # a variation. This will return FALSE and run the inner block if there's 
@@ -54,7 +59,14 @@ class THB_ABTest_Model_Observer {
             if ( ! Mage::helper('abtest')->getIsRunning())
                 return;
 
-            $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($event_name);
+            if ( ! $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($event_name))
+            {
+
+                # A test didn't exist for this event - probably because it was fired 
+                # from the generate XML observer and we don't have a test running. 
+                # We can quit here.
+                return;
+            }
 
             # Register a hit for this variation/test
             $this->_register_visitor_hit($variation['test_id'], $variation['id']);
@@ -154,6 +166,48 @@ class THB_ABTest_Model_Observer {
             # updates for products and categories, so setting this property adds 
             # the variation XML to the category's design.
             $category->setData('_abtest_injected_xml', $layout_update);
+        }
+    }
+
+    protected function _run_checkout_cart_index($observer, $layout_update)
+    {
+        if ($layout_update)
+            $observer->getLayout()->getUpdate()->addUpdate($layout_update);
+    }
+
+    /**
+     * This event is run before any XML is generated on the front end of the 
+     * website, regardless of the controller or action. This allows us to hook 
+     * into controllers such as the cart which don't have event hooks naturally.
+     *
+     * We also use this event to add the preview bar across all pages on the 
+     * front of the website.
+     *
+     * @since 0.0.1
+     * @return void
+     */
+    public function event_generate_xml($observer)
+    {
+        # Add the preview
+        $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="head"><action method="addJs"><script>abtest/abtest.core.js</script></action></reference>');
+        if ($data = Mage::getSingleton('core/cookie')->get('test_preview'))
+        {
+            $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="after_body_start"><block type="core/template" template="abtest/preview.phtml" /></reference>');
+        }
+
+        # Now we've added the preview we're moving on to adding XML overrides to 
+        # other controllers without event hooks. We don't need to do this if 
+        # there are no tests running.
+        if ( ! Mage::helper('abtest')->getIsRunning())
+            return;
+
+        $request = $observer->getAction()->getRequest();
+
+        if ($request->getModuleName() == 'checkout')
+        {
+            # Do we have a test for the cart page (ie. upsells?)
+            $event_name = $request->getModuleName().'_'.$request->getControllerName().'_'.$request->getActionName();
+            $this->run_target_event($observer, $event_name);
         }
     }
 
@@ -280,11 +334,4 @@ class THB_ABTest_Model_Observer {
         $write->query($query);
     }
 
-    public function preview_layout($observer)
-    {
-        if ($data = Mage::getSingleton('core/cookie')->get('test_preview'))
-        {
-            $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="after_body_start"><block type="core/template" template="abtest/preview.phtml" /></reference>');
-        }
-    }
 }
