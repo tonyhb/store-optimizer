@@ -61,6 +61,14 @@
 					</hit>
 				</entities>
 			</abtest_mysql4>
+
+			<!-- Add a rewrite for the design model, allowing us to update
+				 categories -->
+			<catalog>
+				<rewrite>
+					<design>THB_ABTest_Model_Overrides_Design</design>
+				</rewrite>
+			</catalog>
 		</models>
 
 		<!-- Connection information -->
@@ -176,6 +184,16 @@
 					</abtest>
 				</observers>
 			</cms_page_render>
+
+			<!-- CMS page view test hook -->
+			<catalog_controller_category_init_after>
+				<observers>
+					<abtest>
+						<class>abtest/observer</class>
+						<method>run_target_event</method>
+					</abtest>
+				</observers>
+			</catalog_controller_category_init_after>
 
 			<!-- Checkout success hook -->
 			<checkout_onepage_controller_success_action>

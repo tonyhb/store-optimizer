@@ -144,6 +144,19 @@ class THB_ABTest_Model_Observer {
         }
     }
 
+    protected function _run_catalog_controller_category_init_after($observer, $layout_update)
+    {
+        if ($layout_update)
+        {
+            $category = $observer->getCategory();
+            # Categories use the parent (or root) category's settings by 
+            # default. We've overriden the design model which configures layout 
+            # updates for products and categories, so setting this property adds 
+            # the variation XML to the category's design.
+            $category->setData('_abtest_injected_xml', $layout_update);
+        }
+    }
+
     /**
      * Registers a conversion when a user successfully purchases via the onepage 
      * checkout
