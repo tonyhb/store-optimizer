@@ -40,13 +40,6 @@ class THB_ABTest_Model_Observer {
      */
     public function run_target_event($observer, $event_name = NULL)
     {
-        # Get our event name for the method we're running
-        if ($event_name == NULL)
-        {
-            # Run from an observer - use the observer's name
-            $event_name = $observer->getEvent()->getName();
-        }
-
         # If we're previewing layout update XML we need to skip loading 
         # a variation. This will return FALSE and run the inner block if there's 
         # no preview.
@@ -75,101 +68,13 @@ class THB_ABTest_Model_Observer {
         }
 
         # Call our event method to manipulate any data for the test
-        call_user_func_array(array($this, '_run_'.$event_name), array($observer, $layout_update));
+        call_user_func_array(array($this, '_inject_xml'), array($observer, $layout_update));
 
         # Run our SQL queries
         Mage::helper('abtest/optimizer')->runQueries();
     }
 
-    /**
-     * Updates the product page's layout using Custom Layout Updates 
-     * based upon the visitor's cohort.
-     *
-     * This is used for A/B testing product page designs.
-     *
-     * @since 0.0.1
-     *
-     * @param Varien_Event_Observer
-     * @param array  Cohort information
-     * @return void
-     */
-    protected function _run_catalog_controller_product_view($observer, $layout_update)
-    {
-        if ($layout_update)
-        {
-            $product = $observer->getProduct();
-
-            # An admin can add custom layout updates to the product, so we need to 
-            # be careful not to override them. They can also set dates that the 
-            # custom layout update & custom theme work between - if the dates are in 
-            # the past we need to remove the old settings, change the date and add 
-            # only our custom layout update to get these to work.
-            $custom_design_date = $product->getCustomDesignDate();
-            if ($custom_design_date['to'] != NULL)
-            {
-                # Is the design date in the past? If so, remove all of the 
-                # custom settings...
-                if (strtotime($custom_design_date['to']) < time())
-                {
-                    $product->setCustomDesign('');
-                    $product->setPageLayout(NULL);
-                    $product->setCustomLayoutUpdate('');
-
-                    # Set the date to tomorrow so our variation XML works
-                    $product->setData('custom_design_to', date('Y-m-d H:i:s', strtotime('+1 day')));
-                }
-            }
-
-            $custom_updates = $product->getCustomLayoutUpdate();
-            $product->setCustomLayoutUpdate($custom_updates.$layout_update);
-        }
-    }
-
-    /**
-     * Updates the product page's layout using Custom Layout Updates 
-     * based upon the visitor's cohort.
-     *
-     * This is used for A/B testing product page designs.
-     *
-     * @since 0.0.1
-     *
-     * @param Varien_Event_Observer
-     * @param array  Cohort information
-     * @return void
-     */
-    protected function _run_cms_page_render($observer, $layout_update)
-    {
-        if ($layout_update)
-        {
-            # Custom layout updates take precedence over standard layout 
-            # updates. This means if we add to custom updates we'll stop any 
-            # layout updates an admin may have added... not good.
-            if ($custom_updates = $observer->getPage()->getCustomLayoutUpdateXml())
-            {
-                $observer->getPage()->setCustomLayoutUpdateXml($custom_updates.$layout_update);
-            }
-            else
-            {
-                $custom_updates = $observer->getPage()->getLayoutUpdateXml();
-                $observer->getPage()->setLayoutUpdateXml($custom_updates.$layout_update);
-            }
-        }
-    }
-
-    protected function _run_catalog_controller_category_init_after($observer, $layout_update)
-    {
-        if ($layout_update)
-        {
-            $category = $observer->getCategory();
-            # Categories use the parent (or root) category's settings by 
-            # default. We've overriden the design model which configures layout 
-            # updates for products and categories, so setting this property adds 
-            # the variation XML to the category's design.
-            $category->setData('_abtest_injected_xml', $layout_update);
-        }
-    }
-
-    protected function _run_checkout_cart_index($observer, $layout_update)
+    protected function _inject_xml($observer, $layout_update)
     {
         if ($layout_update)
             $observer->getLayout()->getUpdate()->addUpdate($layout_update);
@@ -203,11 +108,64 @@ class THB_ABTest_Model_Observer {
 
         $request = $observer->getAction()->getRequest();
 
-        if ($request->getModuleName() == 'checkout')
+        # Do we have a test for the cart page (ie. upsells?)
+        $event_name = $request->getModuleName().'_'.$request->getControllerName().'_'.$request->getActionName();
+        # var_dump($request, $event_name);
+        # exit;
+        $this->run_target_event($observer, $event_name);
+    }
+
+    /**
+     * Registers a conversion when a product is viewed. 
+     *
+     */
+    public function conversion_product_view($observer)
+    {
+        # This runs every time a product is added, regardless of whether or not 
+        # an AB test is running.
+        if ( ! Mage::helper('abtest')->getIsRunning())
+            return;
+
+        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
         {
-            # Do we have a test for the cart page (ie. upsells?)
-            $event_name = $request->getModuleName().'_'.$request->getControllerName().'_'.$request->getActionName();
-            $this->run_target_event($observer, $event_name);
+            # Get our table name for variations and update the row information
+            $this->_register_conversion($variation, $observer->getProduct()->getPrice());
+        }
+    }
+
+    /**
+     * Registers a conversion when a product is added to the wishlist
+     *
+     */
+    public function conversion_wishlist_add_product($observer)
+    {
+        # This runs every time a product is added, regardless of whether or not 
+        # an AB test is running.
+        if ( ! Mage::helper('abtest')->getIsRunning())
+            return;
+
+        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
+        {
+            # Get our table name for variations and update the row information
+            $this->_register_conversion($variation, $observer->getProduct()->getPrice());
+        }
+    }
+
+    /**
+     * Registers a conversion when a product is sent to a friend
+     *
+     */
+    public function conversion_send_product_to_friend($observer)
+    {
+        # This runs every time a product is added, regardless of whether or not 
+        # an AB test is running.
+        if ( ! Mage::helper('abtest')->getIsRunning())
+            return;
+
+        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
+        {
+            # Get our table name for variations and update the row information
+            $this->_register_conversion($variation, $observer->getProduct()->getPrice());
         }
     }
 
@@ -219,7 +177,7 @@ class THB_ABTest_Model_Observer {
      *
      * @return void
      */
-    public function onepage_success()
+    public function conversion_onepage_success()
     {
         if ( ! Mage::helper('abtest')->getIsRunning())
             return;
@@ -263,7 +221,7 @@ class THB_ABTest_Model_Observer {
      *
      * @return void
      */
-    public function add_product($observer)
+    public function conversion_add_product($observer)
     {
         # This runs every time a product is added, regardless of whether or not 
         # an AB test is running.
