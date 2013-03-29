@@ -61,6 +61,7 @@
 					</hit>
 				</entities>
 			</abtest_mysql4>
+
 		</models>
 
 		<!-- Connection information -->
@@ -157,43 +158,64 @@
 
 	<frontend>
 		<events>
-			<!-- Product view: test page hook -->
+			<!-- Product view conversion hook -->
 			<catalog_controller_product_view>
 				<observers>
 					<abtest>
 						<class>abtest/observer</class>
-						<method>run_target_event</method>
+						<method>conversion_product_view</method>
 					</abtest>
 				</observers>
 			</catalog_controller_product_view>
 
-			<!-- Checkout success hook -->
+			<!-- Checkout complete conversion hook -->
 			<checkout_onepage_controller_success_action>
 				<observers>
 					<abtest>
 						<type>singleton</type>
 						<class>abtest/observer</class>
-						<method>onepage_success</method>
+						<method>conversion_onepage_success</method>
 					</abtest>
 				</observers>
 			</checkout_onepage_controller_success_action>
 
+			<!-- Add product conversion hook -->
 			<checkout_cart_add_product_complete>
 				<observers>
 					<abtest>
 						<type>singleton</type>
 						<class>abtest/observer</class>
-						<method>add_product</method>
+						<method>conversion_add_product</method>
 					</abtest>
 				</observers>
 			</checkout_cart_add_product_complete>
+
+			<wishlist_add_product>
+				<observers>
+					<abtest>
+						<type>singleton</type>
+						<class>abtest/observer</class>
+						<method>conversion_wishlist_add_product</method>
+					</abtest>
+				</observers>
+			</wishlist_add_product>
+
+			<sendfriend_product>
+				<observers>
+					<abtest>
+						<type>singleton</type>
+						<class>abtest/observer</class>
+						<method>conversion_send_product_to_friend</method>
+					</abtest>
+				</observers>
+			</sendfriend_product>
 
 			<controller_action_layout_generate_xml_before>
 				<observers>
 					<abtest>
 						<type>singleton</type>
 						<class>abtest/observer</class>
-						<method>preview_layout</method>
+						<method>event_generate_xml</method>
 					</abtest>
 				</observers>
 			</controller_action_layout_generate_xml_before>

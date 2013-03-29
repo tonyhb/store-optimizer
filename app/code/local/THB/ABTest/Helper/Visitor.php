@@ -124,6 +124,16 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
                     break;
                 }
             }
+
+            # Sanity check: have we actually got a variation, or has someone 
+            # messed around with the split percentages and the user is left 
+            # designless?
+            if ( ! isset($this->_variations[$test_id]))
+            {
+                # Assign them variation #1, which is the control.
+                $control = array_shift($variations);
+                $this->_assignVariation($test_id, $control['id']);
+            }
         }
 
         if ($write_session_data)
@@ -171,6 +181,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
     private function _writeVariationData()
     {
         $data = Mage::helper('core')->jsonEncode($this->_variations);
+        $data = base64_encode($data);
         $data = mcrypt_encrypt(MCRYPT_CAST_128, self::COOKIE_KEY, $data, MCRYPT_MODE_ECB);
         $data = base64_encode($data);
 
@@ -214,6 +225,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         {
             $data = base64_decode($data);
             $data = mcrypt_decrypt(MCRYPT_CAST_128, self::COOKIE_KEY, $data, MCRYPT_MODE_ECB);
+            $data = base64_decode($data);
             $this->_variations = Mage::helper('core')->jsonDecode($data);
         }
 

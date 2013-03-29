@@ -16,7 +16,10 @@ class THB_ABTest_Block_Adminhtml_View_Grid extends Mage_Adminhtml_Block_Widget_G
 
     protected function _prepareCollection()
     {
-        $this->setCollection(Mage::getModel('abtest/Variation')->getResourceCollection());
+        $this->setCollection(Mage::getModel('abtest/Variation')
+            ->getCollection()
+            ->addFieldToFIlter('test_id', $this->getRequest()->getParam('id'))
+        );
         return parent::_prepareCollection();
     }
 

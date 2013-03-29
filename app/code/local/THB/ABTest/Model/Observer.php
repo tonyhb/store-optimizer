@@ -28,27 +28,6 @@ class THB_ABTest_Model_Observer {
     }
 
     /**
-     * We register visits on a daily basis so we can show accurate graphs on the 
-     * view test page.
-     *
-     * @since 0.0.1
-     *
-     * @return void
-     */
-    protected function _register_visitor_hit($test_id, $variation_id)
-    {
-        $optimizer = Mage::helper('abtest/optimizer');
-
-        $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
-        $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
-        $hit_table       = Mage::getSingleton('core/resource')->getTableName('abtest/hit');
-
-        $optimizer->addQuery('INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `visitors`, `views`) VALUES ('.$test_id.', '.$variation_id.', "'.date('Y-m-d').'", 1, 1) ON DUPLICATE KEY UPDATE `views` = `views` + 1');
-        $optimizer->addQuery('UPDATE `'.$variation_table.'` SET views = views + 1 WHERE id = '.$variation_id);
-        $optimizer->addQuery('UPDATE `'.$test_table.'` SET views = views + 1 WHERE id = '.$test_id);
-    }
-
-    /**
      * Runs any time a target event happens, ie. a user visits a page we are 
      * testing. This gets the cohort information, then calls a method to 
      * manipulate any event information for the specific test.
@@ -56,13 +35,11 @@ class THB_ABTest_Model_Observer {
      * @since 0.0.1
      * 
      * @param Varien_Event_Observer
+     * @param string  Event to match in the test's observer_target field
      * @return void
      */
-    public function run_target_event($observer)
+    public function run_target_event($observer, $event_name = NULL)
     {
-        # Get our event name for the method we're running
-        $event_name = $observer->getEvent()->getName();
-
         # If we're previewing layout update XML we need to skip loading 
         # a variation. This will return FALSE and run the inner block if there's 
         # no preview.
@@ -75,7 +52,14 @@ class THB_ABTest_Model_Observer {
             if ( ! Mage::helper('abtest')->getIsRunning())
                 return;
 
-            $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($event_name);
+            if ( ! $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($event_name))
+            {
+
+                # A test didn't exist for this event - probably because it was fired 
+                # from the generate XML observer and we don't have a test running. 
+                # We can quit here.
+                return;
+            }
 
             # Register a hit for this variation/test
             $this->_register_visitor_hit($variation['test_id'], $variation['id']);
@@ -84,30 +68,104 @@ class THB_ABTest_Model_Observer {
         }
 
         # Call our event method to manipulate any data for the test
-        call_user_func_array(array($this, '_run_'.$event_name), array($observer, $layout_update));
+        call_user_func_array(array($this, '_inject_xml'), array($observer, $layout_update));
 
         # Run our SQL queries
         Mage::helper('abtest/optimizer')->runQueries();
     }
 
-    /**
-     * Updates the product page's layout using Custom Layout Updates 
-     * based upon the visitor's cohort.
-     *
-     * This is used for A/B testing product page designs.
-     *
-     * @since 0.0.1
-     *
-     * @param Varien_Event_Observer
-     * @param array  Cohort information
-     * @return void
-     */
-    protected function _run_catalog_controller_product_view($observer, $layout_update)
+    protected function _inject_xml($observer, $layout_update)
     {
         if ($layout_update)
+            $observer->getLayout()->getUpdate()->addUpdate($layout_update);
+    }
+
+    /**
+     * This event is run before any XML is generated on the front end of the 
+     * website, regardless of the controller or action. This allows us to hook 
+     * into controllers such as the cart which don't have event hooks naturally.
+     *
+     * We also use this event to add the preview bar across all pages on the 
+     * front of the website.
+     *
+     * @since 0.0.1
+     * @return void
+     */
+    public function event_generate_xml($observer)
+    {
+        # Add the preview
+        $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="head"><action method="addJs"><script>abtest/abtest.core.js</script></action></reference>');
+        if ($data = Mage::getSingleton('core/cookie')->get('test_preview'))
         {
-            $custom_updates = $observer->getProduct()->getCustomLayoutUpdate();
-            $observer->getProduct()->setCustomLayoutUpdate($custom_updates.$layout_update);
+            $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="after_body_start"><block type="core/template" template="abtest/preview.phtml" /></reference>');
+        }
+
+        # Now we've added the preview we're moving on to adding XML overrides to 
+        # other controllers without event hooks. We don't need to do this if 
+        # there are no tests running.
+        if ( ! Mage::helper('abtest')->getIsRunning())
+            return;
+
+        $request = $observer->getAction()->getRequest();
+
+        # Do we have a test for the cart page (ie. upsells?)
+        $event_name = $request->getModuleName().'_'.$request->getControllerName().'_'.$request->getActionName();
+        # var_dump($request, $event_name);
+        # exit;
+        $this->run_target_event($observer, $event_name);
+    }
+
+    /**
+     * Registers a conversion when a product is viewed. 
+     *
+     */
+    public function conversion_product_view($observer)
+    {
+        # This runs every time a product is added, regardless of whether or not 
+        # an AB test is running.
+        if ( ! Mage::helper('abtest')->getIsRunning())
+            return;
+
+        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
+        {
+            # Get our table name for variations and update the row information
+            $this->_register_conversion($variation, $observer->getProduct()->getPrice());
+        }
+    }
+
+    /**
+     * Registers a conversion when a product is added to the wishlist
+     *
+     */
+    public function conversion_wishlist_add_product($observer)
+    {
+        # This runs every time a product is added, regardless of whether or not 
+        # an AB test is running.
+        if ( ! Mage::helper('abtest')->getIsRunning())
+            return;
+
+        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
+        {
+            # Get our table name for variations and update the row information
+            $this->_register_conversion($variation, $observer->getProduct()->getPrice());
+        }
+    }
+
+    /**
+     * Registers a conversion when a product is sent to a friend
+     *
+     */
+    public function conversion_send_product_to_friend($observer)
+    {
+        # This runs every time a product is added, regardless of whether or not 
+        # an AB test is running.
+        if ( ! Mage::helper('abtest')->getIsRunning())
+            return;
+
+        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
+        {
+            # Get our table name for variations and update the row information
+            $this->_register_conversion($variation, $observer->getProduct()->getPrice());
         }
     }
 
@@ -119,7 +177,7 @@ class THB_ABTest_Model_Observer {
      *
      * @return void
      */
-    public function onepage_success()
+    public function conversion_onepage_success()
     {
         if ( ! Mage::helper('abtest')->getIsRunning())
             return;
@@ -163,7 +221,7 @@ class THB_ABTest_Model_Observer {
      *
      * @return void
      */
-    public function add_product($observer)
+    public function conversion_add_product($observer)
     {
         # This runs every time a product is added, regardless of whether or not 
         # an AB test is running.
@@ -180,6 +238,27 @@ class THB_ABTest_Model_Observer {
 
         # Get our table name for variations and update the row information
         $this->_register_conversion($variation, $price);
+    }
+
+    /**
+     * We register visits on a daily basis so we can show accurate graphs on the 
+     * view test page.
+     *
+     * @since 0.0.1
+     *
+     * @return void
+     */
+    protected function _register_visitor_hit($test_id, $variation_id)
+    {
+        $optimizer = Mage::helper('abtest/optimizer');
+
+        $variation_table = Mage::getSingleton('core/resource')->getTableName('abtest/variation');
+        $test_table      = Mage::getSingleton('core/resource')->getTableName('abtest/test');
+        $hit_table       = Mage::getSingleton('core/resource')->getTableName('abtest/hit');
+
+        $optimizer->addQuery('INSERT INTO `'.$hit_table.'` (`test_id`, `variation_id`, `date`, `visitors`, `views`) VALUES ('.$test_id.', '.$variation_id.', "'.date('Y-m-d').'", 1, 1) ON DUPLICATE KEY UPDATE `views` = `views` + 1');
+        $optimizer->addQuery('UPDATE `'.$variation_table.'` SET views = views + 1 WHERE id = '.$variation_id);
+        $optimizer->addQuery('UPDATE `'.$test_table.'` SET views = views + 1 WHERE id = '.$test_id);
     }
 
     /**
@@ -213,11 +292,4 @@ class THB_ABTest_Model_Observer {
         $write->query($query);
     }
 
-    public function preview_layout($observer)
-    {
-        if ($data = Mage::getSingleton('core/cookie')->get('test_preview'))
-        {
-            $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="after_body_start"><block type="core/template" template="abtest/preview.phtml" /></reference>');
-        }
-    }
 }
