@@ -159,6 +159,12 @@ class THB_ABTest_Helper_Graph extends Mage_Core_Helper_Data
             $end_date = new DateTime(date('Y-m-d'));
         }
 
+        # Our $data container holds data for each date based on the variation 
+        # ID. This means that when we fill our parsed array with 0's we need to 
+        # know the minimum and maximum variation ID to create correct array 
+        # keys.
+        $variation_ids = array_keys(current($data));
+
         # We need to add data points for each variation for each day - so if there are 
         # any blanks we need to fill with a 0,
         $variations = $this->_test->getVariationCollection()->getSize();
@@ -186,7 +192,7 @@ class THB_ABTest_Helper_Graph extends Mage_Core_Helper_Data
                 }
                 else
                 {
-                    $statistics += array_fill(1, $variations, 0);
+                    $statistics += array_fill(min($variation_ids), $variations, 0);
                 }
 
             }
@@ -199,7 +205,7 @@ class THB_ABTest_Helper_Graph extends Mage_Core_Helper_Data
                 }
                 else
                 {
-                    $statistics = array_fill(1, $variations, 0);
+                    $statistics = array_fill(min($variation_ids), $variations, 0);
                 }
             }
 

@@ -41,7 +41,7 @@
         //   - y_axis_name
         abtest.create_graph = function(opts) {
             var line_data = [],
-                chart, visible;
+                chart, visible, counter;
 
             // We need to hard code the width to get the graph to work - SVG pains 
             // with our charting library,
@@ -95,6 +95,7 @@
             }
 
             // Add each line
+            counter = 0;
             for (variation in line_data)
             {
                 if ( ! line_data.hasOwnProperty(variation)) continue;
@@ -108,15 +109,16 @@
                 chart.add_line({
                     data: line_data[variation],
                     options: {
-                        line_name:  abtest.variations[variation - 1],
-                        line_color: colors[variation - 1],
-                        area_color: colors[variation - 1],
-                        dot_color:  colors[variation - 1],
+                        line_name:  abtest.variations[counter],
+                        line_color: colors[counter],
+                        area_color: colors[counter],
+                        dot_color:  colors[counter],
                         dot_size:   dot_size,
                         smoothing: 0,
                         show_line: visible
                     }
                 });
+                counter++;
             }
 
             chart.draw();
