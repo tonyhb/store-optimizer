@@ -25,10 +25,10 @@
 			<abtest_check_end_dates>
 				<schedule>
 					<!-- Run on 00:00 to update 'is_active' for ab tests -->
-					<cron_expr>0 0 * * *</cron_expr>
+					<cron_expr>1 0 * * *</cron_expr>
 				</schedule>
 				<run>
-					<model>abtest/logic::cron</model>
+					<model>abtest/cron::run</model>
 				</run>
 			</abtest_check_end_dates>
 		</jobs>
