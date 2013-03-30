@@ -76,6 +76,13 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
         $P  = $this->getData('conversion_rate') / 100;
         $N  = $this->getdata('visitors');
 
+        # If we've got less than 100 visitors on our control or this variation, 
+        # don't calculate significance - we've got too little data.
+        if ($Nc < 100 OR $N < 100)
+        {
+            return '<small>N/A: Less than 100 visitors</small>';
+        }
+
         $probability = Mage::helper('abtest/statistics')->calculate_probability($P, $Pc, $N, $Nc);
         $confidence = (1 - $probability) * 100;
         $confidence = round($confidence, 0);
@@ -85,7 +92,7 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
             return '<span class="unlikely">&lt; 80%</span>';
         }
 
-        if ($confidence > 95)
+        if ($confidence > Mage::getStoreConfig('abtest/settings/significance'))
         {
             return '<span class="likely">'.$confidence.'%</span>';
         }
@@ -102,9 +109,14 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
 
         $original_rate = $this->getControl()->getData('conversion_rate');
 
-        if ($this->getData('conversion_rate') == 0 OR $original_rate == 0)
+        if ($this->getData('conversion_rate') == 0)
         {
             return "<small>N/A</small>";
+        }
+
+        if ($original_rate == 0)
+        {
+            return '<span class="conversion-improvement">'.($this->getData('conversion_rate') * 100).'%</span>';
         }
 
         $improvement = ($this->getData('conversion_rate') / $original_rate) * 100;

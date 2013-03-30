@@ -134,7 +134,7 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
 
         $data = Mage::helper('core')->jsonEncode($data);
 
-        Mage::getSingleton('core/cookie')->set('test_preview', $data, 600);
+        Mage::getSingleton('core/cookie')->set('test_preview', $data, (Mage::getStoreConfig('abtest/settings/preview_length') * 60));
 
         $this->_redirectUrl(Mage::getStoreConfig('web/unsecure/base_url'));
     }

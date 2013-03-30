@@ -120,7 +120,6 @@
 		</layout>
 
 		<!-- For new config panels we need to add an ACL role. -->
-		<!--
 		<acl>
 			<resources>
 				<admin>
@@ -130,7 +129,7 @@
 								<config>
 									<children>
 										<abtest>
-											<title>ProPOS abtest Module Settings</title>
+											<title>A/B Test Settings</title>
 										</abtest>
 									</children>
 								</config>
@@ -140,7 +139,6 @@
 				</admin>
 			</resources>
 		</acl>
-		-->
 	</adminhtml>
 
 	<admin>

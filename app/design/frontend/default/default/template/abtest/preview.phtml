@@ -1,6 +1,6 @@
 <?php $preview = Mage::helper('abtest/visitor')->getPreview(); ?>
 <?php
-    $time = (strtotime($preview['init_at']) + 600) - time();
+    $time = (strtotime($preview['init_at']) + (Mage::getStoreConfig('abtest/settings/preview_length') * 60)) - time();
     $minutes = floor($time / 60);
     (string) $seconds = $time - ($minutes * 60);
     if (strlen($seconds) == 1) {
