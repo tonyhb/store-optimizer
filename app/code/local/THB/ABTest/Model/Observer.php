@@ -47,28 +47,22 @@ class THB_ABTest_Model_Observer {
 
         if ($layout_update === FALSE)
         {
-            # Check if the test is running then, if so, load our variation and 
-            # register a hit
+            # There's no preview, so if we're not running any tests just quit.
             if ( ! Mage::helper('abtest')->getIsRunning())
                 return;
 
+            # Load the variation for the current module/controller/action event 
+            # combination, then log a hit.
             if ( ! $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($event_name))
-            {
-
-                # A test didn't exist for this event - probably because it was fired 
-                # from the generate XML observer and we don't have a test running. 
-                # We can quit here.
                 return;
-            }
 
-            # Register a hit for this variation/test
             $this->_register_visitor_hit($variation['test_id'], $variation['id']);
 
             $layout_update = $variation['layout_update'];
         }
 
         # Call our event method to manipulate any data for the test
-        call_user_func_array(array($this, '_inject_xml'), array($observer, $layout_update));
+        $this->_inject_xml($observer, $layout_update);
 
         # Run our SQL queries
         Mage::helper('abtest/optimizer')->runQueries();
@@ -93,25 +87,21 @@ class THB_ABTest_Model_Observer {
      */
     public function event_generate_xml($observer)
     {
-        # Add the preview
-        $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="head"><action method="addJs"><script>abtest/abtest.core.js</script></action></reference>');
+        # Add Google Analytics integration, if need be. This is controlled by 
+        # the settings in the configuration panel - the block will not output 
+        # anything if the integration is disabled.
+        $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="before_body_end"><block name="abtest_ga" type="abtest/analytics" /></reference><reference name="head"><action method="addJs"><script>abtest/abtest.core.js</script></action></reference>');
+
+        # Add the preview bar, if need be.
         if ($data = Mage::getSingleton('core/cookie')->get('test_preview'))
         {
             $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="after_body_start"><block type="core/template" template="abtest/preview.phtml" /></reference>');
         }
 
-        # Now we've added the preview we're moving on to adding XML overrides to 
-        # other controllers without event hooks. We don't need to do this if 
-        # there are no tests running.
-        if ( ! Mage::helper('abtest')->getIsRunning())
-            return;
-
         $request = $observer->getAction()->getRequest();
 
         # Do we have a test for the cart page (ie. upsells?)
         $event_name = $request->getModuleName().'_'.$request->getControllerName().'_'.$request->getActionName();
-        # var_dump($request, $event_name);
-        # exit;
         $this->run_target_event($observer, $event_name);
     }
 
@@ -128,6 +118,9 @@ class THB_ABTest_Model_Observer {
 
         if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
         {
+            if ($variation == false)
+                return;
+
             # Get our table name for variations and update the row information
             $this->_register_conversion($variation, $observer->getProduct()->getPrice());
         }
@@ -182,7 +175,8 @@ class THB_ABTest_Model_Observer {
         if ( ! Mage::helper('abtest')->getIsRunning())
             return;
 
-        $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName('checkout_onepage_controller_success_action', 'observer_conversion');
+        if ( ! $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName('checkout_onepage_controller_success_action', 'observer_conversion'))
+            return;
 
         if (Mage::getConfig() !== NULL)
         {
@@ -228,16 +222,16 @@ class THB_ABTest_Model_Observer {
         if ( ! Mage::helper('abtest')->getIsRunning())
             return;
 
-        $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion');
-
-        # Get the price of our item. We don't use the product's price or final 
-        # price because this may be a bundled or configurable product: these 
-        # prices are stored in the custom option's buy request price.
-        $buy_request = $observer->getEvent()->getProduct()->getCustomOptions();
-        $price = $buy_request['info_buyRequest']->getItem()->getPrice() * $observer->getEvent()->getProduct()->getQty();
-
-        # Get our table name for variations and update the row information
-        $this->_register_conversion($variation, $price);
+        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
+        {
+            # Get the price of our item. We don't use the product's price or final 
+            # price because this may be a bundled or configurable product: these 
+            # prices are stored in the custom option's buy request price.
+            $buy_request = $observer->getEvent()->getProduct()->getCustomOptions();
+            $price = $buy_request['info_buyRequest']->getItem()->getPrice() * $observer->getEvent()->getProduct()->getQty();
+            # Get our table name for variations and update the row information
+            $this->_register_conversion($variation, $price);
+        }
     }
 
     /**
@@ -274,6 +268,10 @@ class THB_ABTest_Model_Observer {
      */
     protected function _register_conversion($variation, $value = 0, $order_id = 'NULL')
     {
+        # This shouldn't happen because each conversion event shouldn't run this 
+        # if there's no variation, but it's better to be safe anyway.
+        if ( ! $variation) return;
+
         $write = Mage::getSingleton('core/resource')->getConnection('core/write');
 
         # Get our table name for variations and update the row information

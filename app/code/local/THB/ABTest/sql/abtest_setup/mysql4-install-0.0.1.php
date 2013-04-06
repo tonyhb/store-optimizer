@@ -46,8 +46,3 @@ $installer->run("
 ");
 
 $installer->endSetup();
-
-# Add our defaults...
-# @TODO: Test
-# Mage::app()->getStore()->setConfig('abtest/settings/significance', '95');
-# Mage::app()->getStore()->setConfig('abtest/settings/preview_length', '10');

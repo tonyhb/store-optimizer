@@ -25,6 +25,11 @@
                     $('abtest_form_tabs_cohort_3').hide();
                     $('abtest_form_tabs_cohort_4').hide();
                     $('abtest_form_tabs_cohort_5').hide();
+
+                    // Observe the target event dropdown so we can change the 
+                    // input text value
+                    $('el_observer_select').observe('change', abTest.changeObserver);
+
                     $('el_cohorts').observe('change', abTest.updateCohortNumbers);
                     // Debounce updating for 50ms, so we can get the correct 
                     // value
@@ -69,6 +74,21 @@
                             });
                         });
                     });
+                },
+
+                changeObserver: function(e) {
+                    var t = $('el_observer_target');
+                    if (e.target.value == 'custom') {
+                        t.value = '';
+                        t.style.color = '#444';
+                        $('advanced').style.display = '';
+                        t.focus();
+                    } else {
+                        $('advanced').style.display = 'none';
+                        t.value = e.target.value;
+                        t.style.color = '#888';
+                    }
+
                 },
 
                 // Shows the right amount of variant tabs on the left hand side.
@@ -165,7 +185,7 @@
                             asynchronous: false,
                             parameters: {
                                 xml: xml,
-                                observer: d.getElementById('el_target_observer').value,
+                                observer: d.getElementById('el_observer_target').value,
                                 test_name: d.getElementById('el_test_name').value,
                                 variation_name: variation
                             }

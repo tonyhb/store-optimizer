@@ -70,21 +70,51 @@
         <table cellspacing="0" class="form-list">
         <tbody>
             <tr>
-                <td class="label"><label for="el_target_observer">Test page <span class="required">*</span></label></td>
+                <td class="label"><label for="el_observer_select">Test page <span class="required">*</span></label></td>
                 <td class="value">
-                    <select id="el_target_observer" name="test[observer_target]" style="width: 300px" class=" required-entry select">
-                        <option value="catalog_controller_product_view">Product page</option>
-                        <option value="catalog_controller_category_init_before">Category page</option>
-                        <option value="cms_page_render">CMS page</option>
+                    <select id="el_observer_select" name="target_observer_select" style="width: 300px" class=" required-entry select">
+                        <optgroup label="All">
+                            <option value="*">All pages</option>
+                        </optgroup>
+                        <optgroup label="Catalog">
+                            <option value="catalog_category_view">Category page</option>
+                            <option value="catalog_product_view">Product page</option>
+                        </optgroup>
+                        <optgroup label="Checkout">
+                            <option value="checkout_cart_index">Cart overview page</option>
+                            <option value="checkout_onepage_index">One-Page Checkout</option>
+                        </optgroup>
+                        <optgroup label="CMS">
+                            <option value="cms_page_view">CMS page</option>
+                            <option value="cms_index_index">Home page</option>
+                        </optgroup>
+                        <optgroup label="Other">
+                            <option value="wishlist_index_index">Wishlist</option>
+                            <option value="custom">Custom</option>
+                        </optgroup>
                     </select>
+                </td>
+            </tr>
+            <tr id="advanced" style='display:none'>
+                <td class="label"></td>
+                <td class="value" style="width:350px">
+                    <input type="text" name="test[observer_target]" id="el_observer_target" value="*" class="required-entry input-text" style='border: 1px solid #ddd; color: #888; padding: 3px 8px; width: 282px; margin-bottom: 5px;' />
+                    <p class="note" style="width: 360px"><span>The test page action, in the format of &nbsp;<span style='font-family:monospace'>Module_Controller_Action</span></span></p>
                 </td>
             </tr>
             <tr>
                 <td class="label"><label for="el_conversion_observer">Conversion action <span class="required">*</span></label></td>
                 <td class="value">
                     <select id="el_conversion_observer" name="test[observer_conversion]" style="width: 300px" class=" required-entry select">
-                        <option value="checkout_cart_add_product_complete">Added product to cart</option>
-                        <option value="checkout_onepage_controller_success_action">Completed checkout</option>
+                        <optgroup label="Action">
+                            <option value="checkout_cart_add_product_complete">Added product to cart</option>
+                            <option value="wishlist_add_product">Added product to wishlist</option>
+                            <option value="checkout_onepage_controller_success_action">Completed checkout (purchased via one-step checkout)</option>
+                            <option value="sendfriend_product">Sent product to friend</option>
+                        </optgroup>
+                        <optgroup label="View">
+                            <option value="catalog_controller_product_view">Product viewed</option>
+                        </optgroup>
                     </select>
                 </td>
             </tr>

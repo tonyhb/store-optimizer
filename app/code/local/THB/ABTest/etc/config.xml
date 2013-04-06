@@ -219,4 +219,16 @@
 			</controller_action_layout_generate_xml_before>
 		</events>
 	</frontend>
+
+	<!-- Add our default A/B test configuration settings -->
+	<default>
+		<abtest>
+			<settings>
+				<preview_length>10</preview_length>
+				<significance>95</significance>
+				<analytics>0</analytics>
+				<variable_slot>5</variable_slot>
+			</settings>
+		</abtest>
+	</default>
 </config>

@@ -65,7 +65,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             {
                 # Assign the visitor's variation - this will either randomise or 
                 # force a variation depending on the get parameter. 
-                $this->assignVariation($test_id, $data['variations'], FALSE);
+                $this->assignVariation($data, $data['variations'], FALSE);
                 $_session_data_has_changed = TRUE;
             }
         }
@@ -90,17 +90,17 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      *                we can write data once.
      * @return bool
      */
-    public function assignVariation($test_id, $variations, $write_session_data = TRUE)
+    public function assignVariation($test_data, $variations, $write_session_data = TRUE)
     {
-        if (isset($_GET['__t_'.$test_id]))
+        if (isset($_GET['__t_'.$test_data['id']]))
         {
             # The forced variation doesn't exist...
-            if ( ! array_key_exists($_GET['__t_'.$test_id], $variations))
+            if ( ! array_key_exists($_GET['__t_'.$test_data['id']], $variations))
                 return FALSE;
 
             # We have got a GET parameter which ensures a visitor gets a particular 
             # version (useful for client links).
-            $this->_assignVariation($test_id, $_GET['__t_'.$test_id]);
+            $this->_assignVariation($test_data['id'], $_GET['__t_'.$test_data['id']]);
         }
         else
         {
@@ -120,7 +120,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
 
                 if ($seed <= $current_percentage)
                 {
-                    $this->_assignVariation($test_id, $variation['id']);
+                    $this->_assignVariation($test_data['id'], $variation['id'], $test_data['name'], $variation['name']);
                     break;
                 }
             }
@@ -128,11 +128,11 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             # Sanity check: have we actually got a variation, or has someone 
             # messed around with the split percentages and the user is left 
             # designless?
-            if ( ! isset($this->_variations[$test_id]))
+            if ( ! isset($this->_variations[$test_data['id']]))
             {
                 # Assign them variation #1, which is the control.
                 $control = array_shift($variations);
-                $this->_assignVariation($test_id, $control['id']);
+                $this->_assignVariation($test_data['id'], $control['id'], $test_data['name'], $control['name']);
             }
         }
 
@@ -153,10 +153,17 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      * @param int   Variation ID to assign
      * @return void
      */
-    private function _assignVariation($test_id, $variation_id)
+    private function _assignVariation($test_id, $variation_id, $test_name = NULL, $variation_name = NULL)
     {
         $this->_variations[$test_id] = array(
-            'variation' => $variation_id,
+            'test'      => array(
+                'name'  => $test_name,
+                'id'    => $test_id
+            ),
+            'variation' => array(
+                'name'  => $variation_name,
+                'id'    => $variation_id,
+            ),
             'last_seen' => date('Y-m-d'),
         );
 
@@ -291,11 +298,11 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
 
         foreach (Mage::helper('abtest')->getActiveTests() as $test)
         {
-            if ($test[$source] == $observer_name)
+            if ($this->_matchEvent($test[$source], $observer_name))
             {
                 # This is the test we're looking for, so we're going to get the 
                 # ID of the variation for this user
-                $variation_id = $this->_variations[$test['id']]['variation'];
+                $variation_id = $this->_variations[$test['id']]['variation']['id'];
 
                 # Loop through all of the test's variations to find the matching 
                 # variation information, then return the complete variation 
@@ -337,11 +344,26 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
     {
         if ($cookie = $this->getPreview())
         {
-            if ($observer_event_name == $cookie['observer'])
+            if ($this->_matchEvent($cookie['observer'], $observer_event_name))
                 return $cookie['xml'];
         }
 
         return FALSE;
     }
 
+    /**
+     * Matches an event, turning asterisks (*) into wildcards.
+     *
+     * @since 0.0.1
+     * @param string  Event name (from the test, including wildcards) to match
+     * @param string  Controller/module/action pair to match
+     * @return bool
+     */
+    protected function _matchEvent($event, $subject)
+    {
+        $event = str_replace('*', '[a-zA-Z_]*', $event);
+        $event = '/'.$event.'/i';
+
+        return (bool) preg_match($event, $subject);
+    }
 }

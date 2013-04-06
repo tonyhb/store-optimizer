@@ -146,6 +146,9 @@ class THB_ABTest_Helper_Graph extends Mage_Core_Helper_Data
 
     public function _parseDataForGraphs($data, $is_cumulative = false)
     {
+        if (empty($data))
+            return array();
+
         # Get the start date of the test and the current/end date so we can calculate 
         # statistics for each day in between the two
         $start_date = new DateTime($this->_test->getStartDate());

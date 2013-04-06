@@ -59,6 +59,16 @@
 							<show_in_store>0</show_in_store>
 						</analytics>
 
+						<variable_slot translate="label">
+							<label>Slot for custom variable in Google Analytics (from 1-5)</label>
+							<frontend_type>text</frontend_type>
+							<sort_order>4</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+							<default>5</default>
+						</variable_slot>
+
 					</fields>
 				</settings>
 			</groups>

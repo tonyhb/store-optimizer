@@ -51,6 +51,9 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
         # Calculate the standard error
         #
         # Find out the standard error
+        if ($this->getConversions() == 0 OR $this->getVisitors() == 0)
+            return '<small>-</small>';
+
         $conversion_rate = $this->getConversions() / $this->getVisitors();
         $standard_error = sqrt($conversion_rate * (1 - $conversion_rate) / (int) $this->getVisitors());
         $standard_error = $standard_error * 1.96; # 1.96 = 95% confidence (bigger stanard error range with less visitors), or 1.28 for 80% confidence
