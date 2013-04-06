@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Integrates our A/B tests with Google Analytics
+ *
+ */
 class THB_ABTest_Block_Analytics extends Mage_Core_Block_Text
 {
 
