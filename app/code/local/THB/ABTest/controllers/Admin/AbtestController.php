@@ -74,20 +74,6 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
     {
         if ($data = $this->getRequest()->getPost())
         {
-            # Let's do a sanity check for the date. The date must either be 
-            # today or in the future - we don't want the start date to be Jan 1, 
-            # 1979, or we'll have 40 years of data to show in the graph LOL.
-            $today = new DateTime(Date('Y-m-d'));
-            $start_date = new DateTime($data['test']['start_date']);
-            if ($start_date < $today)
-            {
-                // Throw an error, baby
-                die("Oh no you di-uhnt! This test can't start in the past!");
-            }
-
-            # @TODO: Check for running tests with the same observers.
-            # @TODO: We should allow tests to have the same conversion observer.
-
             try
             {
                 $test = Mage::getModel('abtest/test')->addData($data['test']);
@@ -110,6 +96,42 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
         }
 
         $this->_redirect('*/*/view', array('id' => $test->getId(), '_current' => true));
+    }
+
+    /**
+     * Used when creating a new A/B test. Ensures data is valid.
+     *
+     * @since 0.0.1
+     */
+    public function validateAction()
+    {
+        $errors = array();
+        $valid  = TRUE;
+
+        $data = $this->getRequest()->getPost();
+
+        $test       = Mage::getModel('abtest/test')->addData($data['test']);
+        $validation = $test->validate();
+
+        if ($validation !== TRUE) {
+            $valid  = FALSE;
+            $errors = $validation;
+        }
+
+        if ( ! $valid)
+        {
+            header("Content-Type: application/json");
+            header("HTTP/1.0 400 Bad Request");
+
+            $string = "<ul class='messages'><li class='error-msg'><ul>";
+            foreach ($errors as $error) {
+                $string .= '<li><span>'.$error.'</span></li>';
+            }
+            $string .= '</ul></li></ul>';
+
+            echo Mage::helper('core')->jsonEncode(array("error" => true, "message" => $string));
+            return;
+        }
     }
 
     /**

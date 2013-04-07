@@ -76,5 +76,55 @@ class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
             ->addFieldToSelect('*');
     }
 
+    /**
+     * Ensures data from `getData()` is valid. Used before a new model is saved.
+     *
+     * @since 0.0.1
+     */
+    public function validate($throw_exception_with_errors = FALSE)
+    {
+        $errors = array();
+        $valid  = TRUE;
+
+        # Let's do a sanity check for the date. The date must either be 
+        # today or in the future - we don't want the start date to be Jan 1, 
+        # 1979, or we'll have 40 years of data to show in the graph LOL.
+        $today = new DateTime(Date('Y-m-d'));
+        $start_date = new DateTime($this->getData('start_date'));
+        if ($start_date < $today)
+        {
+            $valid = FALSE;
+            $errors[] = Mage::helper('core')->__('The start date can\'t be in the past.');
+        }
+
+        # Is there a test name? There bloody better be.
+        if ( ! $this->getData('name'))
+        {
+            $valid = FALSE;
+            $errors[] = Mage::helper('core')->__('The test needs to have a name.');
+        }
+
+        # Is there a test with the action event running already?
+        $other_tests = Mage::getModel('abtest/test')
+            ->getCollection()
+            ->addFieldToFilter('is_active', 1)
+            ->addFieldToFilter('observer_target', $this->getData('observer_target'))
+            ->getSize();
+        if ($other_tests > 0)
+        {
+            $valid = FALSE;
+            $errors[] = Mage::helper('core')->__('An A/B test is already running with the chosen test page.');
+        }
+
+        # This is invalid - return an array of errors or throw an exception
+        if ( ! $valid)
+        {
+            if ($throw_exception_with_errors) throw new Exception("Validation failed");
+
+            return $errors;
+        }
+
+        return TRUE;
+    }
 
 }
