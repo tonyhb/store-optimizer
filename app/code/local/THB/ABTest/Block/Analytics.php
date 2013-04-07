@@ -14,17 +14,23 @@ class THB_ABTest_Block_Analytics extends Mage_Core_Block_Text
         if (Mage::getStoreConfig('google/analytics/active') == 0 OR Mage::getStoreConfig('abtest/settings/analytics') == 0)
             return;
 
-        if ( ! Mage::helper('abtest')->getIsRunning())
-            return;
+        $store_uenc = Mage::getStoreConfig('abtest/settings/store_uenc');
 
-        $custom_variable_slot = Mage::getStoreConfig('abtest/settings/variable_slot');
-        if ( ! $custom_variable_slot) {
-            $custom_variable_slot = 5;
+        if (Mage::helper('abtest')->getIsRunning())
+        {
+            $custom_variable_slot = Mage::getStoreConfig('abtest/settings/variable_slot');
+            if ( ! $custom_variable_slot) {
+                $custom_variable_slot = 5;
+            }
+
+            $variations = Mage::helper('abtest/visitor')->getAllVariations();
+        }
+        else
+        {
+            $variations = array();
         }
 
-        $variations = Mage::helper('abtest/visitor')->getAllVariations();
-
-        $output = "";
+        $output = "var STORE_UENC = '$store_uenc';\r\n";
         foreach ($variations as $variation) {
             if (isset($variation['test']['name']) && isset($variation['variation']['name'])) {
                 $output .= "_gaq.push(['_setCustomVar', {$custom_variable_slot}, '{$variation['test']['name']}', '{$variation['variation']['name']}', 2]);\r\n";

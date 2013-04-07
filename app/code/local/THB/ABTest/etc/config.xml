@@ -228,6 +228,7 @@
 				<significance>95</significance>
 				<analytics>0</analytics>
 				<variable_slot>5</variable_slot>
+				<store_uenc>423</store_uenc>
 			</settings>
 		</abtest>
 	</default>
