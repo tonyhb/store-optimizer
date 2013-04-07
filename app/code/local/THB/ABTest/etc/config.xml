@@ -235,6 +235,7 @@
 				<analytics>0</analytics>
 				<variable_slot>5</variable_slot>
 				<store_uenc>423</store_uenc>
+				<single_conversion>1</single_conversion>
 			</settings>
 		</abtest>
 	</default>

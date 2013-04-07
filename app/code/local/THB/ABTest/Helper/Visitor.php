@@ -203,6 +203,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
                 'name'  => $variation_name,
                 'id'    => $variation_id,
             ),
+            'converted' => FALSE,
             'last_seen' => date('Y-m-d'),
         );
 
@@ -232,6 +233,20 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         $data = base64_encode($data);
 
         Mage::getSingleton('core/cookie')->set('cohort_data', $data, (86400 * 365));
+    }
+
+    /**
+     * Sets the 'converted' flag for the user's test/variation information to 
+     * TRUE, so that we can only register one variation per visitor if need be.
+     *
+     * @since 0.0.1
+     * @return void
+     */
+    public function registerConversion($test_id)
+    {
+        $this->getAllVariations();
+        $this->_variations[$test_id]['converted'] = true;
+        $this->_writeVariationData();
     }
 
     /**

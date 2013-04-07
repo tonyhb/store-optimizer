@@ -272,6 +272,14 @@ class THB_ABTest_Model_Observer {
         # if there's no variation, but it's better to be safe anyway.
         if ( ! $variation) return;
 
+        # Are we only registering one conversion per visitor? If so, stop this 
+        # if the visitor has already converted.
+        if (Mage::getStoreConfig('abtest/settings/single_conversion') == '1') {
+            $variation_data = Mage::helper('abtest/visitor')->getVariation($variation['test_id']);
+            if ($variation_data['converted'])
+                return;
+        }
+
         $write = Mage::getSingleton('core/resource')->getConnection('core/write');
 
         # Get our table name for variations and update the row information
@@ -288,6 +296,8 @@ class THB_ABTest_Model_Observer {
         $query .= 'INSERT INTO `'.$conversion_table.'` (test_id, variation_id, order_id, value, created_at) VALUES ('.$variation['test_id'].', '.$variation['id'].', '.$order_id.', '.$value.', "'.date('Y-m-d H:i:s').'"); ';
 
         $write->query($query);
+
+        Mage::helper('abtest/visitor')->registerConversion($variation['test_id']);
     }
 
 }
