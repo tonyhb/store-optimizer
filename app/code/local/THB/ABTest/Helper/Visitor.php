@@ -140,30 +140,33 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         }
         else
         {
-            # Randomly assign the visitor to a variation depending on the split 
-            # percentage settings.
-            # We need to loop through each variation to get the cumulative 
-            # percentage - when the seed is lower than the cumulative 
-            # percentage we're in that cohort.
-            # IE: $seed = 20 and Version A takes 50%: We're in A (20 <=50)
-            #     $seed = 92, Version A: 50%, Version b: 50%:
-            #       We're in B (92 <= (50 + 50))
-            $seed = mt_rand(1,100);
-            $current_percentage = 0;
-            foreach ($variations as $variation)
-            {
-                $current_percentage += $variation['split_percentage'];
-
-                if ($seed <= $current_percentage)
+            # Are we only testing new visitors?
+            if ( ! $test_data['only_test_new_visitors'] OR ($test_data['only_test_new_visitors'] && $this->getIsNew())) {
+                # Randomly assign the visitor to a variation depending on the split 
+                # percentage settings.
+                # We need to loop through each variation to get the cumulative 
+                # percentage - when the seed is lower than the cumulative 
+                # percentage we're in that cohort.
+                # IE: $seed = 20 and Version A takes 50%: We're in A (20 <=50)
+                #     $seed = 92, Version A: 50%, Version b: 50%:
+                #       We're in B (92 <= (50 + 50))
+                $seed = mt_rand(1,100);
+                $current_percentage = 0;
+                foreach ($variations as $variation)
                 {
-                    $this->_assignVariation($test_data['id'], $variation['id'], $test_data['name'], $variation['name']);
-                    break;
+                    $current_percentage += $variation['split_percentage'];
+
+                    if ($seed <= $current_percentage)
+                    {
+                        $this->_assignVariation($test_data['id'], $variation['id'], $test_data['name'], $variation['name']);
+                        break;
+                    }
                 }
             }
 
             # Sanity check: have we actually got a variation, or has someone 
             # messed around with the split percentages and the user is left 
-            # designless?
+            # designless? Or, this may be because we've got a returning visitor.
             if ( ! isset($this->_variations[$test_data['id']]))
             {
                 # Assign them variation #1, which is the control.
@@ -337,6 +340,10 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         {
             if ($this->_matchEvent($test[$source], $observer_name))
             {
+                # The user doesn't have a variation for this test
+                if ( ! isset($this->_variations[$test['id']]))
+                    return FALSE;
+
                 # This is the test we're looking for, so we're going to get the 
                 # ID of the variation for this user
                 $variation_id = $this->_variations[$test['id']]['variation']['id'];
