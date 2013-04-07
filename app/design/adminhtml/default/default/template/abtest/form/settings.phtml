@@ -130,6 +130,16 @@
                 </td>
             </tr>
             <tr>
+                <td class="label"><label for="el_control_traffic">Only test variations with new visitors?</label></td>
+                <td class="value">
+                    <select id="el_target_new_visitors" name="test[only_test_new_visitors]" style="width: 300px" class=" required-entry select">
+                        <option value="1">Yes</option>
+                        <option value="0" selected="selected">No</option>
+                    </select>
+                    <p class="note"><span>Helps provide more accurate results, but will skew the amount of traffic going to each variation.</span></p>
+                </td>
+            </tr>
+            <tr>
                 <td class="label"><label for="el_control_traffic">Control traffic percentage <span class="required">*</span></label></td>
                 <td class="value">
                     <input type="text" name="el_control_traffic" id="el_control_traffic" value="70" class="required-entry input-text" style="width:2.5em" /> % &nbsp;<a href="#" id="split_traffic_evenly">(split evenly)</a>

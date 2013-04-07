@@ -21,9 +21,6 @@ class THB_ABTest_Model_Observer {
         # Find out if we've got any tests running.
         $helper = Mage::helper('abtest');
 
-        if ($helper->getActiveTests() == array())
-            return;
-
         Mage::helper('abtest/visitor')->assignVariations();
     }
 

@@ -112,7 +112,7 @@
                     abTest.updateControlTrafficNote();
                 },
 
-                splitControlTrafficEvenly: function() {
+                splitControlTrafficEvenly: function(e) {
                     var traffic = 100 / abTest.cohorts;
                     traffic = Math.round(traffic * 100) / 100;
 
@@ -120,6 +120,7 @@
                     $('el_control_traffic').value = abTest.controlTraffic;
 
                     abTest.updateControlTrafficNote();
+                    e.preventDefault();
                 },
 
                 // Updates the abTest.controlTraffic setting, after sanitising 
