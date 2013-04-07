@@ -61,4 +61,57 @@ class THB_ABTest_Helper_Data extends Mage_Core_Helper_Data {
         return self::$_active_tests;
     }
 
+    protected $_test;
+
+    /**
+     * Helper method to set the current test. Used for setting variation content 
+     * from within templates:
+     *
+     *   if (Mage::helper('abtest')->test("Test Name")->is_variation("a"))
+     *      // ... DO stuff for variation A here.
+     *
+     * @since 0.0.1
+     * @return $this
+     */
+    public function test($test_name)
+    {
+        $this->_test = $test_name;
+        return $this;
+    }
+
+    /**
+     * Helper method to add variation content from within templates:
+     *
+     *   if (Mage::helper('abtest')->test("Test Name")->is_variation("a"))
+     *      // ... DO stuff for variation A here.
+     *
+     * @since 0.0.1
+     * @return bool
+     */
+    public function is_variation($variation_name)
+    {
+        if ( ! $this->_test)
+            return FALSE;
+
+        $test_id = 0;
+        foreach (self::$_active_tests as $test) {
+            if ($test['name'] == $this->_test) {
+                $test_id = $test['id'];
+                break;
+            }
+        }
+
+        if ($test_id == 0)
+            return FALSE;
+
+        # Get the user's variation for the test ID
+        if ( ! $variation = Mage::helper('abtest/visitor')->getVariation($test_id))
+            return FALSE;
+
+        if ($variation['variation']['name'] == $variation_name)
+            return TRUE;
+
+        return FALSE;
+    }
+
 }

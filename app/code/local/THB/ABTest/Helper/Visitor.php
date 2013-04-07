@@ -301,7 +301,6 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             return $this->getVariationFromObserverName($test_id);
         }
 
-        # @TODO: Ensure return is the same as getVariationFromObserverName
         return $this->_variations[$test_id];
     }
 
