@@ -53,7 +53,10 @@ class THB_ABTest_Model_Observer {
             if ( ! $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($event_name))
                 return;
 
-            $this->_register_visitor_hit($variation['test_id'], $variation['id']);
+            # Only register a hit if this isn't a 404...
+            if ($event_name != 'cms_index_noRoute') {
+                $this->_register_visitor_hit($variation['test_id'], $variation['id']);
+            }
 
             $layout_update = $variation['layout_update'];
         }
