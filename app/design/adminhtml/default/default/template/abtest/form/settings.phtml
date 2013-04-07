@@ -22,12 +22,12 @@
             <tr>
                 <td class="label"><label for="el_start_date">Start date <span class="required">*</span></label></td>
                 <td class="value">
-                <input name="test[start_date]" id="el_start_date" value="<?php echo Date("d/m/Y", time()); ?>" style="width: 200px" type="text" class=" required-entry input-text"> <img src="http://magento.local/skin/adminhtml/default/default/images/grid-cal.gif" alt="" class="v-middle" id="el_start_date_trig" title="Select Date" style="">
+                <input name="test[start_date]" id="el_start_date" value="<?php echo Date("j M, Y", time()); ?>" style="width: 200px" type="text" class=" required-entry input-text"> <img src="http://magento.local/skin/adminhtml/default/default/images/grid-cal.gif" alt="" class="v-middle" id="el_start_date_trig" title="Select Date" style="">
                     <script type="text/javascript">
                     //<![CDATA[
                         Calendar.setup({
                             inputField: "el_start_date",
-                            ifFormat: "%e/%m/%Y",
+                            ifFormat: "%e %b, %Y",
                             showsTime: true,
                             button: "el_start_date_trig",
                             align: "Bl",
@@ -45,7 +45,7 @@
                     //<![CDATA[
                         Calendar.setup({
                             inputField: "el_end_date",
-                            ifFormat: "%e/%m/%Y",
+                            ifFormat: "%e %b, %Y",
                             showsTime: true,
                             button: "el_end_date_trig",
                             align: "Bl",
