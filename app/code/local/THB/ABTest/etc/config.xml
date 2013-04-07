@@ -62,6 +62,12 @@
 				</entities>
 			</abtest_mysql4>
 
+			<core>
+				<rewrite>
+					<design_package>THB_ABTest_Model_Overrides_Design</design_package>
+				</rewrite>
+			</core>
+
 		</models>
 
 		<!-- Connection information -->

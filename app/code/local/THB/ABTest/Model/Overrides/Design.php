@@ -1,41 +1,35 @@
 <?php
 
-class THB_ABTest_Model_Overrides_Design extends Mage_Catalog_Model_Design
+class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
 {
 
-    /**
-     * So when loading a category's design settings we use a method in the 
-     * category's Resource model called `getParentDesignCategory`. This loads 
-     * a separate category which doesn't have our injected variation XML in.
-     *
-     * This method overrides the original getDesignSettings code to ensure our 
-     * injected XML is always added to the returned layout updates array key.
-     *
-     * @since 0.0.1
-     * @param Mage_Catalog_Model_Category|Mage_Catalog_Model_Product $object
-     * @retur array
-     */
-    public function getDesignSettings($object)
+    public function getPackageName()
     {
-        $settings = parent::getDesignSettings($object);
+        if (null === $this->_name) {
+            # Are we testing or previewing a new theme?
+            if ($this->getArea() != 'adminhtml') {
 
-        # Have we got injected data?
-        if ($object->getData('_abtest_injected_xml'))
-        {
-            # Get the current layout updates and add our stuff
-            $layout_updates   = $settings->getData('layout_updates');
-            if ($layout_updates == NULL)
-            {
-                $layout_updates = array($object->getData('_abtest_injected_xml'));
+                # Are we previewing a theme?
+                if ($preview = Mage::helper('abtest/visitor')->getPreview()) {
+                    if ($preview['theme']) {
+                        $this->setPackageName($preview['theme']);
+                    }
+                } else {
+                    # Do we have a variation with a theme?
+                    $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName('*');
+                    if ($variation['theme']) {
+                        $this->setPackageName($variation['theme']);
+                    }
+                }
             }
-            else
-            {
-                $layout_updates[] = $object->getData('_abtest_injected_xml');
-            }
-
-            $settings->setData('layout_updates', $layout_updates);
         }
 
-        return $settings;
+        # The variation or preview didn't have a theme override - we can go for 
+        # the standard theme.
+        if ($this->_name === null) {
+            $this->setPackageName();
+        }
+
+        return $this->_name;
     }
 }

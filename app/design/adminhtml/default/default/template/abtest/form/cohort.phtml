@@ -25,6 +25,12 @@
                 <?php endif; ?>
                 </td>
             </tr>
+            <tr>
+                <td class="label"><label for="cohort_<?php echo $this->getCohort(); ?>_theme">Theme (leave blank for the current theme)</label></td>
+                <td class="value">
+                    <input type="text" name="cohort[<?php echo $this->getCohort(); ?>][theme]" id="cohort_<?php echo $this->getCohort(); ?>_theme" value="" class="input-text cohort-theme" />
+                </td>
+            </tr>
         </tbody>
         </table>
         <table cellspacing="0" class="form-list" style="width:100%; margin-top: 10px;">

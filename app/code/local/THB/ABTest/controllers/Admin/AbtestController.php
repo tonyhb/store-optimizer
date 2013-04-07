@@ -105,24 +105,40 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
      */
     public function validateAction()
     {
+        header("Content-Type: application/json");
+        header("HTTP/1.0 400 Bad Request");
+
+        ini_set('display_errors', 1);
+        error_reporting(E_ALL);
+
         $errors = array();
         $valid  = TRUE;
-
-        $data = $this->getRequest()->getPost();
+        $data   = $this->getRequest()->getPost();
 
         $test       = Mage::getModel('abtest/test')->addData($data['test']);
         $validation = $test->validate();
-
         if ($validation !== TRUE) {
             $valid  = FALSE;
             $errors = $validation;
         }
 
+        $variations = 0;
+        foreach ($data['cohort'] as $variation)
+        {
+            if ($variations >= $data['cohorts']) break;
+
+            $variations++;
+            $model = Mage::getModel('abtest/variation')->setData($variation);
+            $model->setTestId(0);
+            $validation = $model->validate();
+            if ($validation !== TRUE) {
+                $valid  = FALSE;
+                $errors = array_merge($errors, $validation);
+            }
+        }
+
         if ( ! $valid)
         {
-            header("Content-Type: application/json");
-            header("HTTP/1.0 400 Bad Request");
-
             $string = "<ul class='messages'><li class='error-msg'><ul>";
             foreach ($errors as $error) {
                 $string .= '<li><span>'.$error.'</span></li>';
@@ -132,6 +148,8 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
             echo Mage::helper('core')->jsonEncode(array("error" => true, "message" => $string));
             return;
         }
+
+        echo Mage::helper('core')->jsonEncode(array("error" => false));
     }
 
     /**
@@ -149,6 +167,7 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
                 'init_at'        => date('Y-m-d H:i:s'),
                 'observer'       => $test->getData('observer_target'),
                 'xml'            => $variation->getData('layout_update'),
+                'theme'          => $variation->getData('theme'),
                 'variation_name' => $variation->getData('name'),
                 'test_name'      => $test->getData('name'),
                 'running'        => TRUE, # Is this test running already?
@@ -161,6 +180,7 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
                 'init_at'        => date('Y-m-d H:i:s'),
                 'observer'       => $data['observer'],
                 'xml'            => $data['xml'],
+                'theme'          => $data['theme'],
                 'variation_name' => $data['variation_name'],
                 'test_name'      => 'Unsaved test',
                 'running'        => FALSE, # Is this test running already?

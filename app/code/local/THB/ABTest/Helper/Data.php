@@ -58,7 +58,7 @@ class THB_ABTest_Helper_Data extends Mage_Core_Helper_Data {
             self::$_is_running = TRUE;
         }
 
-        return self::$_is_running;
+        return self::$_active_tests;
     }
 
 }

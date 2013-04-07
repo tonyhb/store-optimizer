@@ -140,4 +140,29 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
         return '<span class="conversion-improvement">'.$improvement.'%</span>';
     }
 
+    public function validate($throw_exception_with_errors = FALSE)
+    {
+        $errors = array();
+        $valid  = TRUE;
+
+        if ( ! $this->getData('name')) {
+            $valid    = FALSE;
+            $errors[] = Mage::helper('core')->__('A variation is missing a name.');
+        }
+
+        if ($this->getData('theme')) {
+            $design = Mage::getDesign();
+            if ( ! $design->designPackageExists($this->getData('theme'), 'frontend')) {
+                $valid    = FALSE;
+                $errors[] = Mage::helper('core')->__('The theme "'.$this->getData('theme').'" does not exist.');
+            }
+        }
+
+        if ( ! $valid) {
+            if ($throw_exception_with_errors) throw new Exception("Validation failed");
+            return $errors;
+        }
+
+        return TRUE;
+    }
 }

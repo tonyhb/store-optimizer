@@ -170,12 +170,13 @@
                 },
 
                 previewXml: function(button_el) {
-                    var xml, variation, cohort = button_el.getAttribute('data-cohort');
+                    var xml, variation, theme, cohort = button_el.getAttribute('data-cohort');
 
                     xml = d.getElementById(cohort + '_xml').value;
                     xml = xml.replace(/(\r\n|\n|\r)/gm, "");
 
                     variation = d.getElementById(cohort + '_name').value;
+                    theme = d.getElementById(cohort + '_theme').value;
 
                     // Post a new request to the preview action with our xml, 
                     // observer, and test name, then open a new window.
@@ -186,6 +187,7 @@
                             asynchronous: false,
                             parameters: {
                                 xml: xml,
+                                theme: theme,
                                 observer: d.getElementById('el_observer_target').value,
                                 test_name: d.getElementById('el_test_name').value,
                                 variation_name: variation
