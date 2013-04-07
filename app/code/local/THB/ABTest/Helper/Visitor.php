@@ -26,6 +26,41 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
     protected $_variations = NULL;
 
     /**
+     * Is this user a new or returning visitor?
+     *
+     * This is found out by looking for hte 'cohort_data' cookie. If it exists 
+     * then the user is returning. We find this out in getAllVariations, which 
+     * is called from the assignVariations method run each time the observer 
+     * model is made.
+     *
+     * @since 0.0.1
+     * @var bool
+     */
+    protected $_is_new = FALSE;
+
+    /**
+     * Is this visitor returning?
+     *
+     * @since 0.0.1
+     * @return bool
+     */
+    public function getIsReturning()
+    {
+        return ! $this->_is_new;
+    }
+
+    /**
+     * Is this visitor new?
+     *
+     * @since 0.0.1
+     * @return bool
+     */
+    public function getIsNew()
+    {
+        return $this->_is_new;
+    }
+
+    /**
      * Assigns variations to the current visitor for all running tests.
      *
      * @since 0.0.1
@@ -70,7 +105,8 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             }
         }
 
-        if ($_session_data_has_changed)
+        # If there's new session data or this is a new visitor, log them.
+        if ($_session_data_has_changed OR Mage::getSingleton('core/cookie')->get('cohort_data') === FALSE)
         {
             # Write our cached DB queries
             $this->_writeVariationData();
@@ -227,6 +263,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         if ($data == FALSE)
         {
             $this->_variations = array();
+            $this->_is_new = TRUE;
         }
         else
         {
@@ -366,4 +403,5 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
 
         return (bool) preg_match($event, $subject);
     }
+
 }
