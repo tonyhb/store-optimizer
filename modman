@@ -1,0 +1,7 @@
+app/code/local/THB/ABTest                                         app/code/community/THB/ABTest
+app/design/adminhtml/default/default/layout/thb-abtest.xml        app/design/adminhtml/default/default/layout/thb-abtest.xml
+app/design/adminhtml/default/default/template/abtest              app/design/adminhtml/default/default/template/abtest
+app/design/frontend/base/default/template/abtest                  app/design/frontend/base/default/template/abtest
+app/etc/modules/THB_ABTest.xml                                    app/etc/modules/THB_ABTest.xml
+js/abtest	                                                      js/abtest
+skin/adminhtml/default/default/abtest                             skin/adminhtml/default/default/abtest
