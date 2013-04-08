@@ -3,7 +3,7 @@
 	<modules>
 		<THB_ABTest>
 			<active>true</active>
-			<codePool>local</codePool>
+			<codePool>community</codePool>
 		</THB_ABTest>
 	</modules>
 </config>
