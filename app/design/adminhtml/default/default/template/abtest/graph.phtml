@@ -1,0 +1,193 @@
+<?php $helper = Mage::helper('abtest/graph')->setTest($this->getTest()) ?>
+
+<div id="graph" style="width: 100%; height: 250px">
+</div>
+
+<div id="graph-controls" class="cf">
+    <div id="graph-type">
+        <input class="graph_data" type="radio" name="graph_data" value="conversion_rate" checked="checked" id="conversion_rate_graph" /><label for="conversion_rate_graph">Conversion rate</label>
+        <input class="graph_data" type="radio" name="graph_data" value="visitor" id="visitor_graph" /><label for="visitor_graph">Visitors</label>
+        <input class="graph_data" type="radio" name="graph_data" value="conversion" id="conversion_graph" /><label for="conversion_graph">Conversions</label>
+
+        <span>|</span>
+
+        <input class="graph_type" type="radio" name="graph_type" value="visitor" id="cumulative" checked="checked" /><label for="cumulative">Cumulative</label>
+        <input class="graph_type" type="radio" name="graph_type" value="conversion" id="by_day" /><label for="by_day">By day</label>
+
+    </div>
+</div>
+<script>
+    (function(d, w) {
+        var abtest  = w.abtest = {
+                type                                  : 'cumulative',
+                start_date                            : new Date("<?php echo date('F d, Y 00:00:01', strtotime($this->getTest()->getStartDate())); ?>"),
+                variations                            : <?php echo Mage::helper('core')->jsonEncode($helper->getVariationNames()); ?>,
+                visitor_graph_data_by_day             : <?php echo Mage::helper('core')->jsonEncode($helper->getHitData()); ?>,
+                conversion_graph_data_by_day          : <?php echo Mage::helper('core')->jsonEncode($helper->getConversionData()); ?>,
+                conversion_rate_graph_data_by_day     : <?php echo Mage::helper('core')->jsonEncode($helper->getConversionRateData()); ?>,
+                visitor_graph_data_cumulative         : <?php echo Mage::helper('core')->jsonEncode($helper->getCumulativeHitData()); ?>,
+                conversion_graph_data_cumulative      : <?php echo Mage::helper('core')->jsonEncode($helper->getCumulativeConversionData()); ?>,
+                conversion_rate_graph_data_cumulative : <?php echo Mage::helper('core')->jsonEncode($helper->getCumulativeConversionRateData()); ?>,
+            },
+            colors      = ['#ee6633', '#ffa900', '#00aadd', '#55bb00', '#cf53ff'],
+            dot_size    = 5;
+
+        // Creates a new graph
+        //
+        // The parameters which are necessary are:
+        //   - raw_data
+        //   - element
+        //   - y_axis_name
+        abtest.create_graph = function(opts) {
+            var line_data = [],
+                chart, visible, counter;
+
+            // We need to hard code the width to get the graph to work - SVG pains 
+            // with our charting library,
+            opts.element.style.width = opts.element.scrollWidth + 'px';
+
+            // Create a new chart
+            chart = new Charts.LineChart(opts.element, {
+                show_grid: true,
+                label_min: false,
+                label_max: false,
+                label_color: '#888',
+                max_y_labels: 5,
+                max_x_labels: 20,
+                y_label_size: 12,
+                x_label_size: 12,
+                y_axis_name:  opts.y_axis_name,
+                x_axis_name:  'DATE',
+                axis_name_color: '#aaa',
+                axis_name_size:  10,
+                y_padding: 40,
+                x_padding: 60,
+                area_opacity: 0.1,
+                line_width:   1,
+                dot_stroke_size: 2,
+                show_legend: true,
+                y_label_suffix: opts.y_label_suffix || '',
+                tooltip_suffix: opts.tooltip_suffix || ''
+            });
+
+            // Change the dot size on small screens or with large datasets
+            if (opts.element.scrollWidth < 1400 || Object.keys(opts.raw_data).length > 30)
+                dot_size = 4
+
+            // Loop through each day and arrange our line data into per-variation 
+            // arrays
+            var day, variation;
+            for (day in opts.raw_data)
+            {
+                if ( ! opts.raw_data.hasOwnProperty(day)) continue;
+
+                for (variation in opts.raw_data[day])
+                {
+                    if ( ! opts.raw_data[day].hasOwnProperty(variation)) continue;
+
+                    // Create an array for the variation data
+                    if (line_data[variation] === undefined) line_data[variation] = [];
+
+                    // Add the data for this day to our line
+                    line_data[variation].push([new Date(day), opts.raw_data[day][variation]]);
+                }
+            }
+
+            // Add each line
+            counter = 0;
+            for (variation in line_data)
+            {
+                if ( ! line_data.hasOwnProperty(variation)) continue;
+
+                if (variation == 1)
+                    visible = true
+                else
+                    visible = true
+
+                // Add this line to the graph
+                chart.add_line({
+                    data: line_data[variation],
+                    options: {
+                        line_name:  abtest.variations[counter],
+                        line_color: colors[counter],
+                        area_color: colors[counter],
+                        dot_color:  colors[counter],
+                        dot_size:   dot_size,
+                        smoothing: 0,
+                        show_line: visible
+                    }
+                });
+                counter++;
+            }
+
+            chart.draw();
+
+            return chart;
+        }
+
+        abtest.changeGraph = function() {
+            abtest.graph.clear();
+
+            d.getElementById('graph').innerHTML = '';
+
+            var graph_buttons = $$('.graph_data'), i, target;
+            for (i in graph_buttons) {
+                if (graph_buttons.hasOwnProperty(i)) {
+                    if (graph_buttons[i].checked) {
+                        target = graph_buttons[i];
+                    }
+                }
+            }
+
+            if (target.getAttribute('id') == 'conversion_rate_graph') {
+                abtest.graph = abtest.create_graph({
+                    element: d.getElementById('graph'),
+                    raw_data: abtest[target.getAttribute('id') + '_data_' + abtest.type],
+                    y_axis_name: 'CONVERSION RATE',
+                    y_label_suffix: '%',
+                    tooltip_suffix: '%'
+                });
+            } else {
+                abtest.graph = abtest.create_graph({
+                    element: d.getElementById('graph'),
+                    raw_data: abtest[target.getAttribute('id') + '_data_' + abtest.type],
+                    y_axis_name: target.nextSibling.innerHTML.toUpperCase(),
+                });
+            }
+        };
+
+        Event.observe(w, 'load', function() {
+            abtest.graph = abtest.create_graph({
+                element: d.getElementById('graph'),
+                raw_data: abtest.conversion_rate_graph_data_cumulative,
+                y_axis_name: 'CONVERSION RATE',
+                y_label_suffix: '%',
+                tooltip_suffix: '%'
+            });
+        });
+
+        var graph_buttons = $$('.graph_data'), i;
+        for (i in graph_buttons)
+        {
+            if (graph_buttons.hasOwnProperty(i))
+                graph_buttons[i].observe('change', abtest.changeGraph);
+        }
+
+        $('cumulative').observe('change', function(e) {
+            if (e.target.checked) {
+                abtest.type = 'cumulative';
+            } else { 
+                abtest.type = 'by_day';
+            }
+            abtest.changeGraph();
+        });
+        $('by_day').observe('change', function(e) {
+            if (e.target.checked) {
+                abtest.type = 'by_day';
+            } else { 
+                abtest.type = 'cumulative';
+            }
+            abtest.changeGraph();
+        });
+    })(document, window);
+</script>

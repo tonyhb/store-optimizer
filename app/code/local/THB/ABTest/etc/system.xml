@@ -1,0 +1,87 @@
+<?xml version="1.0" ?>
+<!--
+/**
+ * Provides settings for the magento configuration panel. This saves both the 
+ * archive directory for past exports and the watch folder for automatic
+ * uploads.
+ *
+ */
+-->
+
+<config>
+	<sections>
+		<abtest translate="label" module="abtest">
+			<label>A/B Test Settings</label>
+			<tab>general</tab>
+			<sort_order>2500</sort_order>
+
+			<show_in_default>1</show_in_default>
+			<show_in_website>0</show_in_website>
+			<show_in_store>0</show_in_store>
+
+			<groups>
+				<settings translate="label">
+					<label>A/B Test Settings</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>1</sort_order>
+
+					<show_in_default>1</show_in_default>
+					<show_in_website>0</show_in_website>
+					<show_in_store>0</show_in_store>
+
+					<fields>
+						<preview_length translate="label">
+							<label>Length of A/B test previews (in minutes)</label>
+							<frontend_type>text</frontend_type>
+							<sort_order>1</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</preview_length>
+
+						<single_conversion translate="label">
+							<label>Allow only one conversion per visitor (eg. two add-to-carts from one visitor count as only one conversion)</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>3</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</single_conversion>
+
+						<significance translate="label">
+							<label>Results are significant at</label>
+							<frontend_type>select</frontend_type>
+							<source_model>THB_ABTest_Model_Source_Significance</source_model>
+							<sort_order>3</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</significance>
+
+						<analytics translate="label">
+							<label>Integrate tests with Google Analytics</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>4</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</analytics>
+
+						<variable_slot translate="label">
+							<label>Slot for custom variable in Google Analytics (from 1-5)</label>
+							<frontend_type>text</frontend_type>
+							<sort_order>5</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+							<default>5</default>
+						</variable_slot>
+
+					</fields>
+				</settings>
+			</groups>
+		</abtest>
+	</sections>
+</config>

@@ -1,0 +1,152 @@
+<div class="entry-edit-head">
+    <h4 class="icon-head head-edit-form fieldset-legend">Date settings</h4>
+    <div class="form-buttons"></div>
+</div>
+<div class="form-buttons"></div>
+<div class="fieldset " id="date_fieldset">
+    <div class="hor-scroll">
+        <table cellspacing="0" class="form-list">
+        <tbody>
+            <tr>
+                <td class="label"><label for="el_test_name">Name <span class="required">*</span></label></td>
+                <td class="value">
+                    <input type="text" name="test[name]" id="el_test_name" value="" class="required-entry input-text" />
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_test_description">Description</label></td>
+                <td class="value">
+                    <textarea name="test[description]" id="el_test_description" value="" style="height: 5em" class="input-text"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_start_date">Start date <span class="required">*</span></label></td>
+                <td class="value">
+                <input name="test[start_date]" id="el_start_date" value="<?php echo Date("j M, Y", time()); ?>" style="width: 200px" type="text" class=" required-entry input-text"> <img src="http://magento.local/skin/adminhtml/default/default/images/grid-cal.gif" alt="" class="v-middle" id="el_start_date_trig" title="Select Date" style="">
+                    <script type="text/javascript">
+                    //<![CDATA[
+                        Calendar.setup({
+                            inputField: "el_start_date",
+                            ifFormat: "%e %b, %Y",
+                            showsTime: true,
+                            button: "el_start_date_trig",
+                            align: "Bl",
+                            singleClick : true
+                        });
+                    //]]>
+                    </script>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_end_date">End date</label></td>
+                <td class="value">
+                    <input name="test[end_date]" id="el_end_date" value="" style="width: 200px" type="text" class=" input-text"> <img src="http://magento.local/skin/adminhtml/default/default/images/grid-cal.gif" alt="" class="v-middle" id="el_end_date_trig" title="Select Date" style="">
+                    <script type="text/javascript">
+                    //<![CDATA[
+                        Calendar.setup({
+                            inputField: "el_end_date",
+                            ifFormat: "%e %b, %Y",
+                            showsTime: true,
+                            button: "el_end_date_trig",
+                            align: "Bl",
+                            singleClick : true
+                        });
+                    //]]>
+                    </script>
+                    <p class="note" id="note_el_end_date"><span>Leave blank to leave running indefinitely</span></p>
+                </td>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="entry-edit-head">
+    <h4 class="icon-head head-edit-form fieldset-legend">A/B Test Settings</h4>
+    <div class="form-buttons"></div>
+</div>
+<div class="fieldset " id="observer_fieldset">
+    <div class="hor-scroll">
+        <table cellspacing="0" class="form-list">
+        <tbody>
+            <tr>
+                <td class="label"><label for="el_observer_select">Test page <span class="required">*</span></label></td>
+                <td class="value">
+                    <select id="el_observer_select" name="target_observer_select" style="width: 300px" class=" required-entry select">
+                        <optgroup label="All">
+                            <option value="*">All pages</option>
+                        </optgroup>
+                        <optgroup label="Catalog">
+                            <option value="catalog_category_view">Category page</option>
+                            <option value="catalog_product_view">Product page</option>
+                        </optgroup>
+                        <optgroup label="Checkout">
+                            <option value="checkout_cart_index">Cart overview page</option>
+                            <option value="checkout_onepage_index">One-Page Checkout</option>
+                        </optgroup>
+                        <optgroup label="CMS">
+                            <option value="cms_page_view">CMS page</option>
+                            <option value="cms_index_index">Home page</option>
+                        </optgroup>
+                        <optgroup label="Other">
+                            <option value="wishlist_index_index">Wishlist</option>
+                            <option value="custom">Custom</option>
+                        </optgroup>
+                    </select>
+                </td>
+            </tr>
+            <tr id="advanced" style='display:none'>
+                <td class="label"></td>
+                <td class="value" style="width:350px">
+                    <input type="text" name="test[observer_target]" id="el_observer_target" value="*" class="required-entry input-text" style='border: 1px solid #ddd; color: #888; padding: 3px 8px; width: 282px; margin-bottom: 5px;' />
+                    <p class="note" style="width: 360px"><span>The test page action, in the format of &nbsp;<span style='font-family:monospace'>Module_Controller_Action</span></span></p>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_conversion_observer">Conversion action <span class="required">*</span></label></td>
+                <td class="value">
+                    <select id="el_conversion_observer" name="test[observer_conversion]" style="width: 300px" class=" required-entry select">
+                        <optgroup label="Action">
+                            <option value="checkout_cart_add_product_complete">Added product to cart</option>
+                            <option value="wishlist_add_product">Added product to wishlist</option>
+                            <option value="checkout_onepage_controller_success_action">Completed checkout (purchased via one-step checkout)</option>
+                            <option value="sendfriend_product">Sent product to friend</option>
+                        </optgroup>
+                        <optgroup label="View">
+                            <option value="catalog_controller_product_view">Product viewed</option>
+                        </optgroup>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_cohorts">Variations <span class="required">*</span></label></td>
+                <td class="value">
+                    <select id="el_cohorts" name="cohorts" style="width: 300px" class=" required-entry select">
+                        <option value="2">1</option>
+                        <option value="3">2</option>
+                        <option value="4">3</option>
+                        <option value="5">4</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_control_traffic">Only test variations with new visitors?</label></td>
+                <td class="value">
+                    <select id="el_target_new_visitors" name="test[only_test_new_visitors]" style="width: 300px" class=" required-entry select">
+                        <option value="1">Yes</option>
+                        <option value="0" selected="selected">No</option>
+                    </select>
+                    <p class="note"><span>Helps provide more accurate results, but will skew the amount of traffic going to each variation.</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td class="label"><label for="el_control_traffic">Control traffic percentage <span class="required">*</span></label></td>
+                <td class="value">
+                    <input type="text" name="el_control_traffic" id="el_control_traffic" value="70" class="required-entry input-text" style="width:2.5em" /> % &nbsp;<a href="#" id="split_traffic_evenly">(split evenly)</a>
+                    <p class="note" id="note_el_control_traffic"><span>The variation gets <b>30%</b> of the traffic</span></p>
+                </td>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+</div>

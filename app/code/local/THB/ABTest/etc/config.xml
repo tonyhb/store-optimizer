@@ -1,0 +1,242 @@
+<?xml version="1.0" ?>
+<!--
+/**
+ * A/B Testing Script
+ * ========================
+ *
+ * ## Synopsis
+ *
+ * This runs every time a user first visits the website to assign them to a 
+ * cohort. We then track each product view through an observer and show a
+ * template depending on their cohort.
+ *
+ */
+-->
+
+<config>
+	<modules>
+		<THB_ABTest>
+			<version>0.0.1</version>
+		</THB_ABTest>
+	</modules>
+
+	<crontab>
+		<jobs>
+			<abtest_check_end_dates>
+				<schedule>
+					<!-- Run on 00:00 to update 'is_active' for ab tests -->
+					<cron_expr>1 0 * * *</cron_expr>
+				</schedule>
+				<run>
+					<model>abtest/cron::run</model>
+				</run>
+			</abtest_check_end_dates>
+		</jobs>
+	</crontab>
+
+	<global>
+		<models>
+
+			<!-- Background/definitions -->
+			<abtest>
+				<class>THB_ABTest_Model</class>
+				<resourceModel>abtest_mysql4</resourceModel>
+			</abtest>
+
+			<!-- Database interaction models -->
+			<abtest_mysql4>
+				<class>THB_ABTest_Model_Mysql4</class>
+				<entities>
+					<test>
+						<table>abtest_test</table>
+					</test>
+					<variation>
+						<table>abtest_variation</table>
+					</variation>
+					<conversion>
+						<table>abtest_conversion</table>
+					</conversion>
+					<hit>
+						<table>abtest_hit</table>
+					</hit>
+				</entities>
+			</abtest_mysql4>
+
+			<core>
+				<rewrite>
+					<design_package>THB_ABTest_Model_Overrides_Design</design_package>
+				</rewrite>
+			</core>
+
+		</models>
+
+		<!-- Connection information -->
+		<resources>
+			<abtest_setup>
+				<setup>
+					<module>THB_ABTest</module>
+					<class>THB_ABTest_Model_Resource_Mysql4_Setup</class>
+				</setup>
+			</abtest_setup>
+
+			<abtest_write>
+				<connection>
+					<use>core_write</use>
+				</connection>
+			</abtest_write>
+			<abtest_read>
+				<connection>
+					<use>core_read</use>
+				</connection>
+			</abtest_read>
+		</resources>
+
+		<helpers>
+			<abtest>
+				<class>THB_ABTest_Helper</class>
+			</abtest>
+		</helpers>
+
+		<blocks>
+			<abtest>
+				<class>THB_ABTest_Block</class>
+			</abtest>
+		</blocks>
+	</global>
+
+	<adminhtml>
+		<menu>
+			<catalog>
+				<children>
+					<abtest translate="title" module="abtest">
+						<title>Manage A/B Tests</title>
+						<action>adminhtml/abtest</action>
+						<sort_order>16</sort_order>
+					</abtest>
+				</children>
+			</catalog>
+		</menu>
+
+		<layout>
+			<updates>
+				<abtest>
+					<file>thb-abtest.xml</file>
+				</abtest>
+			</updates>
+		</layout>
+
+		<!-- For new config panels we need to add an ACL role. -->
+		<acl>
+			<resources>
+				<admin>
+					<children>
+						<system>
+							<children>
+								<config>
+									<children>
+										<abtest>
+											<title>A/B Test Settings</title>
+										</abtest>
+									</children>
+								</config>
+							</children>
+						</system>
+					</children>
+				</admin>
+			</resources>
+		</acl>
+	</adminhtml>
+
+	<admin>
+		<routers>
+			<adminhtml>
+				<use>admin</use>
+				<args>
+					<modules>
+						<THB_ABTest before="Mage_Adminhtml">THB_ABTest_Admin</THB_ABTest>
+					</modules>
+				</args>
+			</adminhtml>
+		</routers>
+	</admin>
+
+	<frontend>
+		<events>
+			<!-- Product view conversion hook -->
+			<catalog_controller_product_view>
+				<observers>
+					<abtest>
+						<class>abtest/observer</class>
+						<method>conversion_product_view</method>
+					</abtest>
+				</observers>
+			</catalog_controller_product_view>
+
+			<!-- Checkout complete conversion hook -->
+			<checkout_onepage_controller_success_action>
+				<observers>
+					<abtest>
+						<type>singleton</type>
+						<class>abtest/observer</class>
+						<method>conversion_onepage_success</method>
+					</abtest>
+				</observers>
+			</checkout_onepage_controller_success_action>
+
+			<!-- Add product conversion hook -->
+			<checkout_cart_add_product_complete>
+				<observers>
+					<abtest>
+						<type>singleton</type>
+						<class>abtest/observer</class>
+						<method>conversion_add_product</method>
+					</abtest>
+				</observers>
+			</checkout_cart_add_product_complete>
+
+			<wishlist_add_product>
+				<observers>
+					<abtest>
+						<type>singleton</type>
+						<class>abtest/observer</class>
+						<method>conversion_wishlist_add_product</method>
+					</abtest>
+				</observers>
+			</wishlist_add_product>
+
+			<sendfriend_product>
+				<observers>
+					<abtest>
+						<type>singleton</type>
+						<class>abtest/observer</class>
+						<method>conversion_send_product_to_friend</method>
+					</abtest>
+				</observers>
+			</sendfriend_product>
+
+			<controller_action_layout_generate_xml_before>
+				<observers>
+					<abtest>
+						<type>singleton</type>
+						<class>abtest/observer</class>
+						<method>event_generate_xml</method>
+					</abtest>
+				</observers>
+			</controller_action_layout_generate_xml_before>
+		</events>
+	</frontend>
+
+	<!-- Add our default A/B test configuration settings -->
+	<default>
+		<abtest>
+			<settings>
+				<preview_length>10</preview_length>
+				<significance>95</significance>
+				<analytics>0</analytics>
+				<variable_slot>5</variable_slot>
+				<store_uenc>423</store_uenc>
+				<single_conversion>1</single_conversion>
+			</settings>
+		</abtest>
+	</default>
+</config>

@@ -1,0 +1,205 @@
+<div>
+    <div class="content-header">
+        <h3 class="icon-head head-adminhtml">New A/B Test</h3>
+        <p class="form-buttons">
+        <button id="id_c3baf48f684a329560174fea420ad7bc" title="Back" type="button" class="scalable back" onclick="setLocation('<?php echo $this->getUrl('*/*/index', array('_current'=>true, 'back'=>null)) ?>')" style=""><span><span><span>Back</span></span></span></button>
+            <button id="id_45be7cf72a01844b81e89979703c4e21" title="Reset" type="button" class="scalable " onclick="setLocation(window.location.href)" style=""><span><span><span>Reset</span></span></span></button>
+            <button id="id_90b83aa2d5c46f34e8d9f27068f690cc" title="Save" type="button" class="scalable save" onclick="abTestForm.submit();" style=""><span><span><span>Save</span></span></span></button>
+        </p>
+    </div>
+    <div class="entry-edit">
+        <form id="abtest_form" action="<?php echo $this->getUrl('*/*/save', array('_current'=>true, 'back'=>null)); ?>" method="post" enctype="multipart/form-data">
+            <?php echo $this->getBlockHtml('formkey')?>
+        </form>
+    </div>
+    <script type="text/javascript">
+        abTestForm = new varienForm('abtest_form', '');
+        abTestForm.validationUrl = '<?php echo $this->getUrl('*/*/validate'); ?>';
+        delete window.console;
+        (function(d) {
+            var abTest = {
+                cohorts: 2,
+                controlTraffic: 70,
+
+                init: function() {
+                    // Hide variant A/B/C tabs
+                    $('abtest_form_tabs_cohort_3').hide();
+                    $('abtest_form_tabs_cohort_4').hide();
+                    $('abtest_form_tabs_cohort_5').hide();
+
+                    // Observe the target event dropdown so we can change the 
+                    // input text value
+                    $('el_observer_select').observe('change', abTest.changeObserver);
+
+                    $('el_cohorts').observe('change', abTest.updateCohortNumbers);
+                    // Debounce updating for 50ms, so we can get the correct 
+                    // value
+                    $('el_control_traffic').observe('keydown', function() {
+                        window.setTimeout(abTest.updateControlTraffic, 50);
+                    });
+
+                    // Only update the input value after blurring so people can 
+                    // delete the input contents (otherwise it'd auto reset to 
+                    // 70 after deleting everything)
+                    $('el_control_traffic').observe('blur', function() {
+                        $('el_control_traffic').value = abTest.controlTraffic;
+                    });
+
+                    $('split_traffic_evenly').observe('click', abTest.splitControlTrafficEvenly);
+
+                    // Preview XML
+                    $$('.preview-xml').each(function(el) {
+                        $(el).observe('click', function(event) { abTest.previewXml(el); });
+                    });
+
+                    $$('.cohort-name').each(function(input) {
+                        $(input).observe('blur', function(e) {
+                            var elements = $$('.' + e.target.getAttribute('id'));
+                            elements.each(function(el) {
+                                var i, span, c;
+                                // Replace the span's TEXT node with the new 
+                                // name
+                                for(i in el.childNodes) {
+                                    if (el.childNodes[i].nodeName != 'SPAN') continue;
+
+                                    // We've got the span, now modify the text 
+                                    // node
+                                    span = el.childNodes[i];
+                                    for (c in span.childNodes)
+                                    {
+                                        if (span.childNodes[c].nodeType == '3') {
+                                            span.childNodes[c].data = e.target.value;
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    });
+                },
+
+                changeObserver: function(e) {
+                    var t = $('el_observer_target');
+                    if (e.target.value == 'custom') {
+                        t.value = '';
+                        t.style.color = '#444';
+                        $('advanced').style.display = '';
+                        t.focus();
+                    } else {
+                        $('advanced').style.display = 'none';
+                        t.value = e.target.value;
+                        t.style.color = '#888';
+                    }
+
+                },
+
+                // Shows the right amount of variant tabs on the left hand side.
+                updateCohortNumbers: function() {
+                    var i = 1, select_box = $('el_cohorts');
+
+                    // Update our settings
+                    abTest.cohorts = select_box.value;
+
+                    // Show the relative number of tabs
+                    while (i <= 5) {
+                        if (i <= select_box.value) {
+                            $('abtest_form_tabs_cohort_' + i).style.display = '';
+                        } else {
+                            $('abtest_form_tabs_cohort_' + i).style.display = 'none';
+                        }
+                        i++;
+                    }
+
+                    abTest.updateControlTrafficNote();
+                },
+
+                splitControlTrafficEvenly: function(e) {
+                    var traffic = 100 / abTest.cohorts;
+                    traffic = Math.round(traffic * 100) / 100;
+
+                    abTest.controlTraffic = traffic;
+                    $('el_control_traffic').value = abTest.controlTraffic;
+
+                    abTest.updateControlTrafficNote();
+                    e.preventDefault();
+                },
+
+                // Updates the abTest.controlTraffic setting, after sanitising 
+                // for a numeric input between 1 and 99
+                updateControlTraffic: function() {
+                    var input = $('el_control_traffic'), value = 70;
+
+                    value = input.value.match(/([0-9.]+)/);
+
+                    if (value === null) {
+                        value = 70;
+                    } else {
+                        // Prototype adds some weird shit, so get the first number
+                        value = value[0];
+                    }
+
+                    if (value >= 100 || value <= 0) {
+                        value = 70;
+                    }
+
+                    abTest.controlTraffic = value;
+
+                    abTest.updateControlTrafficNote();
+                },
+
+                // Updates the note underneath control traffic, and also updates 
+                // the split percentage input hidden fields
+                updateControlTrafficNote: function() {
+                    var traffic = 0, i = 0, cohorts = ['A', 'B', 'C', 'D'];
+
+                    if (abTest.cohorts == 2) {
+                        traffic = (100 - abTest.controlTraffic);
+                        $('note_el_control_traffic').innerHTML = "<span>The variation gets <b>" + traffic + "%</b> of the traffic</span>";
+                    } else {
+                        // Could be a recurring decimal
+                        traffic = ((100 - abTest.controlTraffic) / (abTest.cohorts - 1));
+                        traffic = Math.round(traffic * 100) / 100;
+                        $('note_el_control_traffic').innerHTML = "<span>Each variation gets <b>" + traffic + "%</b> of the traffic</span>";
+                    }
+
+                    $('cohort_Control_percentage').value = abTest.controlTraffic;
+
+                    // Loop through variant a, b, c and d - the abTest.cohorts 
+                    // includes control so use - 1
+                    for (i = 0; i < (abTest.cohorts - 1); i++) {
+                        $('cohort_' + cohorts[i] + '_percentage').value = traffic;
+                    }
+                },
+
+                previewXml: function(button_el) {
+                    var xml, variation, theme, cohort = button_el.getAttribute('data-cohort');
+
+                    xml = d.getElementById(cohort + '_xml').value;
+                    xml = xml.replace(/(\r\n|\n|\r)/gm, "");
+
+                    variation = d.getElementById(cohort + '_name').value;
+                    theme = d.getElementById(cohort + '_theme').value;
+
+                    // Post a new request to the preview action with our xml, 
+                    // observer, and test name, then open a new window.
+                    new Ajax.Request(
+                        '<?php echo Mage::helper('adminhtml')->getUrl('*/abtest/preview/') ?>',
+                        {
+                            method: 'post',
+                            asynchronous: false,
+                            parameters: {
+                                xml: xml,
+                                theme: theme,
+                                observer: d.getElementById('el_observer_target').value,
+                                test_name: d.getElementById('el_test_name').value,
+                                variation_name: variation
+                            }
+                        }
+                    );
+                    window.open('<?php echo Mage::getStoreConfig('web/unsecure/base_url') ?>', 'preview');
+                }
+            };
+
+            abTest.init();
+        })(document);
+    </script>
+</div>

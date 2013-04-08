@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<layout>
+	<default>
+		<reference name="head">
+			<action method="addItem">
+				<type>skin_css</type>
+				<script>abtest/style.css</script>
+			</action>
+			<action method="addJs">
+				<script>abtest/raphael-2.1.0.min.js</script>
+			</action>
+			<action method="addJs">
+				<script>abtest/charts.min.js</script>
+			</action>
+		</reference>
+	</default>
+</layout>

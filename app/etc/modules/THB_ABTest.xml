@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<config>
+	<modules>
+		<THB_ABTest>
+			<active>true</active>
+			<codePool>community</codePool>
+		</THB_ABTest>
+	</modules>
+</config>
