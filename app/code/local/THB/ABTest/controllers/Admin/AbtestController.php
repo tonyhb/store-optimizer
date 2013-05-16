@@ -91,7 +91,7 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
                 }
 
             } catch (Exception $e) {
-                # @TODO: Add exception handling
+                $this->_redirect('*/*/new', array('_current' => true));
             }
         }
 

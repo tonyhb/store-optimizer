@@ -8,7 +8,6 @@ $installer->run("
     CREATE TABLE `{$installer->getTable('abtest/test')}` (
         `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
         `name` varchar(255) DEFAULT NULL,
-        `description` text,
         `start_date` date NOT NULL,
         `end_date` date DEFAULT NULL,
         `is_active` tinyint(1) NOT NULL DEFAULT '1',

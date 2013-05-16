@@ -203,8 +203,8 @@ class THB_ABTest_Model_Observer {
             $this->_register_conversion($variation, $order['grand_total'], $order['entity_id']);
         }
         catch (Exception $e) {
-            # This is observer is run up to 6 times, and this is an error thrown by a unique constraint in the DB.
-            # @TODO find out why it's run 6 times.
+            # This is observer is run multiple times depending on the checkout 
+            # method used. We can skip this silently.
         }
     }
 
