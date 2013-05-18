@@ -20,7 +20,7 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
                     # a cohort - this gets called first. If the visitor gets 
                     # put into a cohort with a different theme, the website's 
                     # design is going to change after the first page view. This 
-                    # ensures we don't get this...
+                    # call ensures we don't get this...
                     Mage::helper('abtest/visitor')->assignVariations();
 
                     # Do we have a variation with a theme?

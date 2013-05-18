@@ -182,7 +182,7 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
                 'xml'            => $data['xml'],
                 'theme'          => $data['theme'],
                 'variation_name' => $data['variation_name'],
-                'test_name'      => 'Unsaved test',
+                'test_name'      => $data['test_name'].' (Unsaved)',
                 'running'        => FALSE, # Is this test running already?
                 'key'            => Mage::getSingleton('core/session')->getFormKey(),
             );
