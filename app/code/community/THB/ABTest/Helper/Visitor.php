@@ -378,6 +378,12 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         return FALSE;
     }
 
+    /**
+     * Returns the user's preivew data inside the user's cookie, if possible.
+     * If the variation doesn't exist this returns FALSE
+     *
+     * @return array|boolean
+     */
     public function getPreview()
     {
         if ($cookie = Mage::getSingleton('core/cookie')->get('test_preview'))
