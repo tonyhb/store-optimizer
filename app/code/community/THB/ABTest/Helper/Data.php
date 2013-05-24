@@ -135,7 +135,29 @@ class THB_ABTest_Helper_Data extends Mage_Core_Helper_Data {
         if ( ! $variation = $this->_getTestVariation())
             return FALSE;
 
-        return $this->_test;
+        if ($variation['variation']['is_control'])
+            return TRUE;
+
+        return FALSE;
+    }
+
+    /**
+     * Returns the current variation's name as a string. This is used to make 
+     * a switch containing different functionality per variation.
+     *
+     * @since 0.0.1
+     * @return string|boolean  String of the variation name or FALSE if the test 
+     *                         isn't running
+     */
+    public function getVariationName()
+    {
+        if ($preview_data = Mage::helper('abtest/visitor')->getPreview() AND $preview_data['test_name'] == $this->_test)
+            return $preview_data['variation_name'];
+
+        if ( ! $variation = $this->_getTestVariation())
+            return FALSE;
+
+        return $variation['variation']['name'];
     }
 
     /**
@@ -162,7 +184,7 @@ class THB_ABTest_Helper_Data extends Mage_Core_Helper_Data {
             return FALSE;
 
         # We can't load the variation; this should never happen.
-        if ( ! $variation = Mage::helper("abtest/visitor")->_getVariation($test_id))
+        if ( ! $variation = Mage::helper("abtest/visitor")->getVariation($test_id))
             return FALSE;
 
         return $variation;

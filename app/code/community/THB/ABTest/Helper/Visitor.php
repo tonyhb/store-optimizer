@@ -158,7 +158,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
 
                     if ($seed <= $current_percentage)
                     {
-                        $this->_assignVariation($test_data['id'], $variation['id'], $test_data['name'], $variation['name']);
+                        $this->_assignVariation($test_data['id'], $variation['id'], $test_data['name'], $variation['name'], (bool) $variation['is_control']);
                         break;
                     }
                 }
@@ -171,7 +171,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             {
                 # Assign them variation #1, which is the control.
                 $control = array_shift($variations);
-                $this->_assignVariation($test_data['id'], $control['id'], $test_data['name'], $control['name']);
+                $this->_assignVariation($test_data['id'], $control['id'], $test_data['name'], $control['name'], TRUE);
             }
         }
 
@@ -192,7 +192,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      * @param int   Variation ID to assign
      * @return void
      */
-    private function _assignVariation($test_id, $variation_id, $test_name = NULL, $variation_name = NULL)
+    private function _assignVariation($test_id, $variation_id, $test_name = NULL, $variation_name = NULL, $is_control = FALSE)
     {
         $this->_variations[$test_id] = array(
             'test'      => array(
@@ -200,8 +200,9 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
                 'id'    => $test_id
             ),
             'variation' => array(
-                'name'  => $variation_name,
-                'id'    => $variation_id,
+                'name'       => $variation_name,
+                'id'         => $variation_id,
+                'is_control' => $is_control,
             ),
             'converted' => FALSE,
             'last_seen' => date('Y-m-d'),
@@ -295,15 +296,11 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
     }
 
     /**
-     * Gets the visitor's variation for a given test.
-     *
-     * The argument for this method should be the test ID, but can also be the 
-     * observer name for a test. If the observer name is passed, the method 
-     * delegates to getVariationFromObserverName and returns the result.
+     * Gets the visitor's variation for a given test. 
      *
      * @since 0.0.1
-     *
-     * @return mixed
+     * @param  int    ID of the test 
+     * @return array  Array of basic test and variation information
      */
     public function getVariation($test_id)
     {
@@ -311,10 +308,11 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
 
         if ( ! is_int($test_id) && (int) $test_id == 0)
         {
-            # We've most likely passed an observer name as the property, so we 
-            # can call that method and return the result.
-            return $this->getVariationFromObserverName($test_id);
+            throw new Exception("The test ID must be given as an integer");
         }
+
+        # Typecast, just in case we had a string like "2"
+        $test_id = (int) $test_id;
 
         return $this->_variations[$test_id];
     }
