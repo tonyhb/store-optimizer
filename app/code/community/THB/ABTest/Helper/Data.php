@@ -67,7 +67,7 @@ class THB_ABTest_Helper_Data extends Mage_Core_Helper_Data {
      * Helper method to set the current test. Used for setting variation content 
      * from within templates:
      *
-     *   if (Mage::helper('abtest')->test("Test Name")->is_variation("a"))
+     *   if (Mage::helper('abtest')->test("Test Name")->isVariation("a"))
      *      // ... DO stuff for variation A here.
      *
      * @since 0.0.1
@@ -82,13 +82,70 @@ class THB_ABTest_Helper_Data extends Mage_Core_Helper_Data {
     /**
      * Helper method to add variation content from within templates:
      *
-     *   if (Mage::helper('abtest')->test("Test Name")->is_variation("a"))
+     *   if (Mage::helper('abtest')->test("Test Name")->isVariation("a"))
      *      // ... DO stuff for variation A here.
      *
      * @since 0.0.1
      * @return bool
      */
-    public function is_variation($variation_name)
+    public function isVariation($variation_name)
+    {
+        # If we're previewing a variation we don't need to load active tests 
+        # - we can use the preview information saved in a cookie. 
+        if ($preview_data = Mage::helper('abtest/visitor')->getPreview() AND $preview_data['test_name'] == $this->_test)
+        {
+            if ($preview_data['variation_name'] == $variation_name)
+                return TRUE;
+            else
+                return FALSE;
+        }
+
+        if ( ! $variation = $this->_getTestVariation())
+            return FALSE;
+
+        if ($variation['variation']['name'] == $variation_name)
+            return TRUE;
+
+        return FALSE;
+    }
+
+    /**
+     * Helper method to determine whether a user is in the control cohort.
+     *
+     * Note that it is **far better** to use `isVariation()` to detect each 
+     * variation's name than use isControl, because isControl only returns TRUE 
+     * when the test is active, meaning code wrapped in an isControl block may 
+     * not be executed by default.
+     *
+     * @since 0.0.1
+     * @return bool
+     **/
+    public function isControl()
+    {
+        # If we're previewing a variation we don't need to load active tests 
+        # - we can use the preview information saved in a cookie. 
+        if ($preview_data = Mage::helper('abtest/visitor')->getPreview() AND $preview_data['test_name'] == $this->_test)
+        {
+            if ($preview_data['is_control'])
+                return TRUE;
+            else
+                return FALSE;
+        }
+
+        if ( ! $variation = $this->_getTestVariation())
+            return FALSE;
+
+        return $this->_test;
+    }
+
+    /**
+     * Returns the variation for the specified test.
+     *
+     * Note that the test must be set by calling the `test()` method beforehand.
+     *
+     * @return THB_ABTest_Model_Test|boolean
+     */
+    protected function _getTestVariation()
     {
         if ( ! $this->_test)
             return FALSE;
@@ -104,14 +161,11 @@ class THB_ABTest_Helper_Data extends Mage_Core_Helper_Data {
         if ($test_id == 0)
             return FALSE;
 
-        # Get the user's variation for the test ID
-        if ( ! $variation = Mage::helper('abtest/visitor')->getVariation($test_id))
+        # We can't load the variation; this should never happen.
+        if ( ! $variation = Mage::helper("abtest/visitor")->_getVariation($test_id))
             return FALSE;
 
-        if ($variation['variation']['name'] == $variation_name)
-            return TRUE;
-
-        return FALSE;
+        return $variation;
     }
 
 }

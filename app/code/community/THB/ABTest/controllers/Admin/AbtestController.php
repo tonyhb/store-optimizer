@@ -169,8 +169,9 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
                 'xml'            => $variation->getData('layout_update'),
                 'theme'          => $variation->getData('theme'),
                 'variation_name' => $variation->getData('name'),
+                'is_control'     => (bool) $variation->getData('is_control'),
                 'test_name'      => $test->getData('name'),
-                'running'        => TRUE, # Is this test running already?
+                'running'        => TRUE, # This is run from the test overview page, which means the test is running
                 'key'            => Mage::getSingleton('core/session')->getFormKey(),
             );
         }
@@ -182,8 +183,9 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
                 'xml'            => $data['xml'],
                 'theme'          => $data['theme'],
                 'variation_name' => $data['variation_name'],
-                'test_name'      => $data['test_name'].' (Unsaved)',
-                'running'        => FALSE, # Is this test running already?
+                'is_control'     => (bool) $data['is_control'],
+                'test_name'      => $data['test_name'],
+                'running'        => FALSE, # This is run from the create test page, so the test isn't running already
                 'key'            => Mage::getSingleton('core/session')->getFormKey(),
             );
         }

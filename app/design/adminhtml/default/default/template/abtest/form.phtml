@@ -179,6 +179,11 @@
                     variation = d.getElementById(cohort + '_name').value;
                     theme = d.getElementById(cohort + '_theme').value;
 
+                    // Is this the control? We use ints instead of bools because 
+                    // they are correctly typecasted by PHP in the preview 
+                    // action.
+                    is_control = (cohort.indexOf("Control") > 0) ? 1 : 0;
+
                     // Post a new request to the preview action with our xml, 
                     // observer, and test name, then open a new window.
                     new Ajax.Request(
@@ -190,8 +195,9 @@
                                 xml: xml,
                                 theme: theme,
                                 observer: d.getElementById('el_observer_target').value,
-                                test_name: d.getElementById('el_test_name').value,
-                                variation_name: variation
+                                test_name: d.getElementById('el_test_name').value.replace(' (Unsaved)', ''),
+                                variation_name: variation,
+                                is_control: is_control
                             }
                         }
                     );
