@@ -61,6 +61,11 @@ class THB_ABTest_Helper_Data extends Mage_Core_Helper_Data {
         return self::$_active_tests;
     }
 
+    /**
+     * Stores the test name for cohort checks
+     *
+     * @param string
+     */
     protected $_test;
 
     /**
