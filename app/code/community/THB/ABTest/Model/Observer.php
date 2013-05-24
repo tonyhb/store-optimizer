@@ -45,7 +45,7 @@ class THB_ABTest_Model_Observer {
         if ($layout_update === FALSE)
         {
             # There's no preview, so if we're not running any tests just quit.
-            if ( ! Mage::helper('abtest')->getIsRunning())
+            if ( ! Mage::helper('abtest')->isRunning())
                 return;
 
             # Load the variation for the current module/controller/action event 
@@ -113,7 +113,7 @@ class THB_ABTest_Model_Observer {
     {
         # This runs every time a product is added, regardless of whether or not 
         # an AB test is running.
-        if ( ! Mage::helper('abtest')->getIsRunning())
+        if ( ! Mage::helper('abtest')->isRunning())
             return;
 
         if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
@@ -134,7 +134,7 @@ class THB_ABTest_Model_Observer {
     {
         # This runs every time a product is added, regardless of whether or not 
         # an AB test is running.
-        if ( ! Mage::helper('abtest')->getIsRunning())
+        if ( ! Mage::helper('abtest')->isRunning())
             return;
 
         if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
@@ -152,7 +152,7 @@ class THB_ABTest_Model_Observer {
     {
         # This runs every time a product is added, regardless of whether or not 
         # an AB test is running.
-        if ( ! Mage::helper('abtest')->getIsRunning())
+        if ( ! Mage::helper('abtest')->isRunning())
             return;
 
         if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
@@ -172,7 +172,7 @@ class THB_ABTest_Model_Observer {
      */
     public function conversion_onepage_success()
     {
-        if ( ! Mage::helper('abtest')->getIsRunning())
+        if ( ! Mage::helper('abtest')->isRunning())
             return;
 
         if ( ! $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName('checkout_onepage_controller_success_action', 'observer_conversion'))
@@ -219,7 +219,7 @@ class THB_ABTest_Model_Observer {
     {
         # This runs every time a product is added, regardless of whether or not 
         # an AB test is running.
-        if ( ! Mage::helper('abtest')->getIsRunning())
+        if ( ! Mage::helper('abtest')->isRunning())
             return;
 
         if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))

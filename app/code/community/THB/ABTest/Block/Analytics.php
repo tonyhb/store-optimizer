@@ -16,7 +16,7 @@ class THB_ABTest_Block_Analytics extends Mage_Core_Block_Text
 
         $store_uenc = Mage::getStoreConfig('abtest/settings/store_uenc');
 
-        if (Mage::helper('abtest')->getIsRunning())
+        if (Mage::helper('abtest')->isRunning())
         {
             $custom_variable_slot = Mage::getStoreConfig('abtest/settings/variable_slot');
             if ( ! $custom_variable_slot) {

@@ -19,7 +19,7 @@ class THB_ABTest_Helper_Data extends Mage_Core_Helper_Data {
      * @api
      * @return array
      */
-    public static function getIsRunning()
+    public static function isRunning()
     {
         return self::$_is_running;
     }
