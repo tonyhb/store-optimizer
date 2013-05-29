@@ -341,20 +341,24 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      *
      * @since 0.0.1
      *
-     * @return mixed
+     * @param  string  Name of the observer to get XML for
+     * @param  string  The observer type: "observer_target" for a test event and 
+     *                 "observer_conversion" for a conversion event
+     * @return string  String of XML (empty string "" for no XML updates)
      */
-    public function getVariationFromObserverName($observer_name, $source = 'observer_target')
+    public function getVariationsFromObserver($observer_name, $source = 'observer_target')
     {
         # Load our session data first
         $this->getAllVariations();
 
+        $variations = array();
         foreach (Mage::helper('abtest')->getActiveTests() as $test)
         {
             if ($this->_matchEvent($test[$source], $observer_name))
             {
                 # The user doesn't have a variation for this test
                 if ( ! isset($this->_variations[$test['id']]))
-                    return FALSE;
+                    continue;
 
                 # This is the test we're looking for, so we're going to get the 
                 # ID of the variation for this user
@@ -367,13 +371,17 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
                 {
                     if ($variation['id'] == $variation_id)
                     {
-                        return $variation;
+                        $variations[] = $variation;
+                        break;
                     }
                 }
             }
         }
 
-        return FALSE;
+        if (empty($variations))
+            return FALSE;
+
+        return $variations;
     }
 
     /**

@@ -48,17 +48,21 @@ class THB_ABTest_Model_Observer {
             if ( ! Mage::helper('abtest')->isRunning())
                 return;
 
-            # Load the variation for the current module/controller/action event 
+            # Load the variations for the current module/controller/action event 
             # combination, then log a hit.
-            if ( ! $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($event_name))
+            if ( ! $variations = Mage::helper('abtest/visitor')->getVariationsFromObserver($event_name))
                 return;
 
-            # Only register a hit if this isn't a 404...
-            if ($event_name != 'cms_index_noRoute') {
-                $this->_register_visitor_hit($variation['test_id'], $variation['id']);
-            }
+            $layout_update = "";
+            foreach ($variations as $variation)
+            {
+                # Only register a hit if this isn't a 404...
+                if ($event_name != 'cms_index_noRoute') {
+                    $this->_register_visitor_hit($variation['test_id'], $variation['id']);
+                }
 
-            $layout_update = $variation['layout_update'];
+                $layout_update .= $variation['layout_update'];
+            }
         }
 
         # Call our event method to manipulate any data for the test
@@ -116,13 +120,13 @@ class THB_ABTest_Model_Observer {
         if ( ! Mage::helper('abtest')->isRunning())
             return;
 
-        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
+        if ($variations = Mage::helper('abtest/visitor')->getVariationsFromObserver($observer->getEvent()->getName(), 'observer_conversion'))
         {
-            if ($variation == false)
-                return;
-
-            # Get our table name for variations and update the row information
-            $this->_register_conversion($variation, $observer->getProduct()->getPrice());
+            foreach ($variations as $variation)
+            {
+                # Get our table name for variations and update the row information
+                $this->_register_conversion($variation, $observer->getProduct()->getPrice());
+            }
         }
     }
 
@@ -137,10 +141,13 @@ class THB_ABTest_Model_Observer {
         if ( ! Mage::helper('abtest')->isRunning())
             return;
 
-        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
+        if ($variations = Mage::helper('abtest/visitor')->getVariationsFromObserver($observer->getEvent()->getName(), 'observer_conversion'))
         {
-            # Get our table name for variations and update the row information
-            $this->_register_conversion($variation, $observer->getProduct()->getPrice());
+            foreach ($variations as $variation)
+            {
+                # Get our table name for variations and update the row information
+                $this->_register_conversion($variation, $observer->getProduct()->getPrice());
+            }
         }
     }
 
@@ -155,10 +162,13 @@ class THB_ABTest_Model_Observer {
         if ( ! Mage::helper('abtest')->isRunning())
             return;
 
-        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
+        if ($variations = Mage::helper('abtest/visitor')->getVariationsFromObserver($observer->getEvent()->getName(), 'observer_conversion'))
         {
-            # Get our table name for variations and update the row information
-            $this->_register_conversion($variation, $observer->getProduct()->getPrice());
+            foreach ($variations as $variation)
+            {
+                # Get our table name for variations and update the row information
+                $this->_register_conversion($variation, $observer->getProduct()->getPrice());
+            }
         }
     }
 
@@ -175,7 +185,7 @@ class THB_ABTest_Model_Observer {
         if ( ! Mage::helper('abtest')->isRunning())
             return;
 
-        if ( ! $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName('checkout_onepage_controller_success_action', 'observer_conversion'))
+        if ( ! $variations = Mage::helper('abtest/visitor')->getVariationsFromObserver('checkout_onepage_controller_success_action', 'observer_conversion'))
             return;
 
         if (Mage::getConfig() !== NULL)
@@ -200,11 +210,14 @@ class THB_ABTest_Model_Observer {
             $order = $read->fetchRow('SELECT entity_id, grand_total FROM sales_flat_order WHERE increment_id = '.$incrementId);
 
             // Add our conversions
-            $this->_register_conversion($variation, $order['grand_total'], $order['entity_id']);
+            foreach ($variations as $variation)
+            {
+                $this->_register_conversion($variation, $order['grand_total'], $order['entity_id']);
+            }
         }
         catch (Exception $e) {
             # This is observer is run multiple times depending on the checkout 
-            # method used. We can skip this silently.
+            # method extensions. We can skip this silently.
         }
     }
 
@@ -222,15 +235,19 @@ class THB_ABTest_Model_Observer {
         if ( ! Mage::helper('abtest')->isRunning())
             return;
 
-        if ($variation = Mage::helper('abtest/visitor')->getVariationFromObserverName($observer->getEvent()->getName(), 'observer_conversion'))
+        if ($variations = Mage::helper('abtest/visitor')->getVariationsFromObserver($observer->getEvent()->getName(), 'observer_conversion'))
         {
             # Get the price of our item. We don't use the product's price or final 
             # price because this may be a bundled or configurable product: these 
             # prices are stored in the custom option's buy request price.
             $buy_request = $observer->getEvent()->getProduct()->getCustomOptions();
             $price = $buy_request['info_buyRequest']->getItem()->getPrice() * $observer->getEvent()->getProduct()->getQty();
-            # Get our table name for variations and update the row information
-            $this->_register_conversion($variation, $price);
+
+            foreach ($variations as $variation)
+            {
+                # Register a conversion
+                $this->_register_conversion($variation, $price);
+            }
         }
     }
 

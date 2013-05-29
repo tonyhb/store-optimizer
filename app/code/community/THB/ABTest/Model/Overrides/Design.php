@@ -24,9 +24,16 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
                     Mage::helper('abtest/visitor')->assignVariations();
 
                     # Do we have a variation with a theme?
-                    $variation = Mage::helper('abtest/visitor')->getVariationFromObserverName('*');
-                    if ($variation['theme']) {
-                        $this->setPackageName($variation['theme']);
+                    $variations = Mage::helper('abtest/visitor')->getVariationsFromObserver('*');
+
+                    # Note that only one test can run themes at a time, so upon 
+                    # the first theme test break the loop of tests on '*'
+                    foreach ($variations as $variation)
+                    {
+                        if ($variation['theme']) {
+                            $this->setPackageName($variation['theme']);
+                            break;
+                        }
                     }
                 }
             }
