@@ -40,7 +40,7 @@ class Loader
         $session = $this->_initializeSession();
 
         foreach ($this->_testClasses as $testClass) {
-            $className = "\Tests\\".$testClass;
+            $className = "\Tests\Groups\\".$testClass;
             $class     = new $className;
 
             # Set the driver as Zombie.
@@ -61,7 +61,8 @@ class Loader
         if ($this->_driver !== NULL)
             return $this->_driver;
 
-        $this->_driver = new \Behat\Mink\Driver\ZombieDriver($this->_host);
+        # $this->_driver = new \Behat\Mink\Driver\ZombieDriver($this->_host);
+        $this->_driver = new \Behat\Mink\Driver\Selenium2Driver('firefox', array('base_url', $this->getUrl()));
 
         return $this->_driver;
     }

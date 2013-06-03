@@ -17,6 +17,7 @@ if (array_keys($opts) != $required) {
     #die("Error: The URL, administration username, and password must be passed as arguments using --url, --user, --pass respectively\r\n");
 }
 
+header("Content-Type: text/plain");
 ini_set("display_errors", 1);
 
 # Run our unit tests

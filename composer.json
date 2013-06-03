@@ -2,7 +2,7 @@
   "require": {
     "phpunit/phpunit": "3.7.21",
     "behat/mink": "*",
-    "behat/mink-zombie-driver": "*"
+    "behat/mink-selenium2-driver": "*"
   },
   "autoload": {
     "psr-0": {
