@@ -31,6 +31,7 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
     {
         $this->_init()
             ->_addContent($this->getLayout()->createBlock('abtest/adminhtml_list_grid_container'))
+            ->_title("Manage A/B Tests")
             ->renderLayout();
     }
 
@@ -49,6 +50,7 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
         $this->_init()
             ->_addLeft($this->getLayout()->createBlock('abtest/adminhtml_tabs'))
             ->_addContent($this->getLayout()->createBlock('abtest/adminhtml_form'))
+            ->_title("New A/B Test")
             ->renderLayout();
     }
 
@@ -62,6 +64,7 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
 
         $this->_init()
             ->_addContent($view)
+            ->_title("View A/B Test")
             ->renderLayout();
     }
 
