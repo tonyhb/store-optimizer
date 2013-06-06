@@ -148,6 +148,10 @@ class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
             $end_date = strtotime($end_date);
             $this->setData("end_date", date("Y-m-d", $end_date));
         }
+        else
+        {
+            $this->setData("end_date", NULL);
+        }
 
         parent::save();
     }
