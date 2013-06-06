@@ -127,4 +127,29 @@ class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
         return TRUE;
     }
 
+    /**
+     * Overrides the default save command to ensure that the start date is in 
+     * the correct format
+     *
+     */
+    public function save()
+    {
+        if ( ! $start_date = $this->getData("start_date"))
+        {
+            $start_date = time();
+        }
+
+        $start_date = strtotime($start_date);
+        $this->setData("start_date", date("Y-m-d", $start_date));
+
+        // We only need to do end dates if they are provided.
+        if ($start_date = $this->getData("end_date"))
+        {
+            $end_date = strtotime($end_date);
+            $this->setData("end_date", date("Y-m-d", $end_date));
+        }
+
+        parent::save();
+    }
+
 }
