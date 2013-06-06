@@ -40,8 +40,9 @@ $variations= Mage::getModel("abtest/variation")
     <p class="<?php echo strtolower(str_replace(' ', '-', $variation->getName())); ?> variation-<?php echo $variation->getId(); ?> name"><?php echo $variation->getName(); ?></p>
     <p class="<?php echo strtolower(str_replace(' ', '-', $variation->getName())); ?> variation-<?php echo $variation->getId(); ?> split_percentage"><?php echo $variation->getSplitPercentage(); ?></p>
     <p class="<?php echo strtolower(str_replace(' ', '-', $variation->getName())); ?> variation-<?php echo $variation->getId(); ?> visitors"><?php echo $variation->getvisitors(); ?></p>
-    <p class="<?php echo strtolower(str_replace(' ', '-', $variation->getName())); ?> variation-<?php echo $variation->getId(); ?> vuews"><?php echo $variation->getViews(); ?></p>
+    <p class="<?php echo strtolower(str_replace(' ', '-', $variation->getName())); ?> variation-<?php echo $variation->getId(); ?> views"><?php echo $variation->getViews(); ?></p>
     <p class="<?php echo strtolower(str_replace(' ', '-', $variation->getName())); ?> variation-<?php echo $variation->getId(); ?> conversions"><?php echo $variation->getConversions(); ?></p>
+    <p class="<?php echo strtolower(str_replace(' ', '-', $variation->getName())); ?> variation-<?php echo $variation->getId(); ?> value"><?php echo $variation->getTotalValue(); ?></p>
     <p class="<?php echo strtolower(str_replace(' ', '-', $variation->getName())); ?> variation-<?php echo $variation->getId(); ?> xml"><?php echo $variation->getLayoutUpdate(); ?></p>
     <br /> 
 <?php endforeach; ?>
