@@ -241,7 +241,12 @@ class THB_ABTest_Model_Observer {
             # price because this may be a bundled or configurable product: these 
             # prices are stored in the custom option's buy request price.
             $buy_request = $observer->getEvent()->getProduct()->getCustomOptions();
-            $price = $buy_request['info_buyRequest']->getItem()->getPrice() * $observer->getEvent()->getProduct()->getQty();
+            if ( ! $qty = $observer->getEvent()->getProduct()->getQty())
+            {
+                $qty = $buy_request['info_buyRequest']->getItem()->getQtyToAdd();
+            }
+
+            $price = $buy_request['info_buyRequest']->getItem()->getPrice() * $qty;
 
             foreach ($variations as $variation)
             {
