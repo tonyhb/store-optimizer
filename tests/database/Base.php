@@ -31,9 +31,6 @@ foreach (str_split($get_version) as $character) {
 }
 
 # Now, no matter what was passed into $_GET (such as ../../../app/config/etc.xml), the $version variable will be secure
-if ( ! $version) {
-    $version = "1_4_2_0";
-}
 
 # So we can require the magento file safely, now.
 require '../../../' . $version . '/app/Mage.php';
