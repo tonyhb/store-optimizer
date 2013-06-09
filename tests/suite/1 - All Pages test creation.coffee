@@ -17,7 +17,7 @@ moment = require('moment');
 ##
 # First, we have to truncate the test tables.
 ##
-casper.start url + "Extension/tests/database/Truncate.php", ->
+casper.start url + "Extension/tests/database/Truncate.php?version=" + version, ->
     @echo "The A/B test tables have been truncated.", "GREEN_BAR"
 
 ##
