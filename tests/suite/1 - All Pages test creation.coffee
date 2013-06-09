@@ -84,8 +84,11 @@ casper.then ->
 #
 # Wait for the preview to pop up
 #
-casper.waitForPopup magento, ->
+casper.waitForPopup(magento, ->
     @test.assertEquals(@.popups.length, 1, "Previewing a variation opened the homepage in a popup")
+, ->
+    @fail "Couldn't load the preview on time"
+, 10000)
 
 
 #
@@ -109,7 +112,7 @@ casper.then ->
     @click ".content-header .save"
 
 
-casper.wait 10000
+casper.wait 12000
 
 
 #
