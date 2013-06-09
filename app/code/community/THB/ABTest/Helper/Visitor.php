@@ -39,6 +39,15 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
     protected $_is_new = FALSE;
 
     /**
+     * Depending on the version of Magento and how the design packages are 
+     * handled, assignVariations can be run more than once on load. This is 
+     * a static property to ensure the method only runs once.
+     *
+     * @var bool
+     */
+    protected static $_has_assigned = FALSE;
+
+    /**
      * Is this visitor returning?
      *
      * @since 0.0.1
@@ -68,6 +77,11 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      */
     public function assignVariations()
     {
+        if (self::$_has_assigned == TRUE)
+        {
+            return;
+        }
+
         # Used in optimizing SQL queries to update variation/test stats
         $optimizer = Mage::helper('abtest/optimizer');
 
@@ -86,16 +100,13 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
                 # Check the current variation and see if it matches the one 
                 # being forced. If not, we need to re-set the user's cohort.
                 $variation = $this->getVariation($test_id);
-                if ( ! isset($_GET["__t_".$test_id]) OR $variation['variation']['id'] == $_GET["__t_".$test_id])
+                if ( ! isset($_GET["__t_".$test_id]))
                 {
                     # If the user has a variation and we're not forcing a new one, 
                     # skip it. The observer model tracks all hits, so we've got 
                     # nothing to do. Note, we could do an OR above and remove this 
                     # entirely but it's here for documentation purposes.
-
-                    # Update the last seen date
-                    $data = $this->getVariation($test_id);
-                    if (strtotime(date('Y-m-d')) > strtotime($data['last_seen']))
+                    if (strtotime(date('Y-m-d')) > strtotime($variation['last_seen']))
                     {
                         self::$_variations[$test_id]['last_seen'] = date('Y-m-d');
                         $_session_data_has_changed = TRUE;
@@ -118,6 +129,8 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             $this->_writeVariationData();
             $optimizer->runQueries();
         }
+
+        self::$_has_assigned = TRUE;
     }
 
     /**
