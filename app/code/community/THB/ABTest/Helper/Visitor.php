@@ -23,7 +23,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      * @since 0.0.1
      * @var array
      */
-    protected $_variations = NULL;
+    protected static $_variations = NULL;
 
     /**
      * Is this user a new or returning visitor?
@@ -81,28 +81,34 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
 
         foreach (Mage::helper('abtest')->getActiveTests() as $test_id => $data)
         {
-            if ($this->hasVariation($test_id) && ! isset($_GET['__t_'.$test_id]))
+            if ($this->hasVariation($test_id))
             {
-                # If the user has a variation and we're not forcing a new one, 
-                # skip it. The observer model tracks all hits, so we've got 
-                # nothing to do. Note, we could do an OR above and remove this 
-                # entirely but it's here for documentation purposes.
-
-                # Update the last seen date
-                $data = $this->getVariation($test_id);
-                if (strtotime(date('Y-m-d')) > strtotime($data['last_seen']))
+                # Check the current variation and see if it matches the one 
+                # being forced. If not, we need to re-set the user's cohort.
+                $variation = $this->getVariation($test_id);
+                if ( ! isset($_GET["__t_".$test_id]) OR $variation['variation']['id'] == $_GET["__t_".$test_id])
                 {
-                    $this->_variations[$test_id]['last_seen'] = date('Y-m-d');
-                    $_session_data_has_changed = TRUE;
+                    # If the user has a variation and we're not forcing a new one, 
+                    # skip it. The observer model tracks all hits, so we've got 
+                    # nothing to do. Note, we could do an OR above and remove this 
+                    # entirely but it's here for documentation purposes.
+
+                    # Update the last seen date
+                    $data = $this->getVariation($test_id);
+                    if (strtotime(date('Y-m-d')) > strtotime($data['last_seen']))
+                    {
+                        self::$_variations[$test_id]['last_seen'] = date('Y-m-d');
+                        $_session_data_has_changed = TRUE;
+                    }
+
+                    continue;
                 }
             }
-            else
-            {
-                # Assign the visitor's variation - this will either randomise or 
-                # force a variation depending on the get parameter. 
-                $this->assignVariation($data, $data['variations'], FALSE);
-                $_session_data_has_changed = TRUE;
-            }
+
+            # Assign the visitor's variation - this will either randomise or 
+            # force a variation depending on the get parameter. 
+            $this->assignVariation($data, $data['variations'], FALSE);
+            $_session_data_has_changed = TRUE;
         }
 
         # If there's new session data or this is a new visitor, log them.
@@ -167,7 +173,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             # Sanity check: have we actually got a variation, or has someone 
             # messed around with the split percentages and the user is left 
             # designless? Or, this may be because we've got a returning visitor.
-            if ( ! isset($this->_variations[$test_data['id']]))
+            if ( ! isset(self::$_variations[$test_data['id']]))
             {
                 # Assign them variation #1, which is the control.
                 $control = array_shift($variations);
@@ -194,7 +200,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      */
     private function _assignVariation($test_id, $variation_id, $test_name = NULL, $variation_name = NULL, $is_control = FALSE)
     {
-        $this->_variations[$test_id] = array(
+        self::$_variations[$test_id] = array(
             'test'      => array(
                 'name'  => $test_name,
                 'id'    => $test_id
@@ -228,7 +234,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      */
     private function _writeVariationData()
     {
-        $data = Mage::helper('core')->jsonEncode($this->_variations);
+        $data = Mage::helper('core')->jsonEncode(self::$_variations);
         $data = base64_encode($data);
         $data = mcrypt_encrypt(MCRYPT_CAST_128, self::COOKIE_KEY, $data, MCRYPT_MODE_ECB);
         $data = base64_encode($data);
@@ -246,7 +252,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
     public function registerConversion($test_id)
     {
         $this->getAllVariations();
-        $this->_variations[$test_id]['converted'] = true;
+        self::$_variations[$test_id]['converted'] = true;
         $this->_writeVariationData();
     }
 
@@ -274,14 +280,14 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
     public function getAllVariations()
     {
         # We've already queried the DB for our session data; don't do it again.
-        if ($this->_variations !== NULL)
-            return $this->_variations;
+        if (self::$_variations !== NULL)
+            return self::$_variations;
 
         $data = Mage::getSingleton('core/cookie')->get('cohort_data');
 
         if ($data == FALSE)
         {
-            $this->_variations = array();
+            self::$_variations = array();
             $this->_is_new = TRUE;
         }
         else
@@ -289,10 +295,10 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             $data = base64_decode($data);
             $data = mcrypt_decrypt(MCRYPT_CAST_128, self::COOKIE_KEY, $data, MCRYPT_MODE_ECB);
             $data = base64_decode($data);
-            $this->_variations = Mage::helper('core')->jsonDecode($data);
+            self::$_variations = Mage::helper('core')->jsonDecode($data);
         }
 
-        return $this->_variations;
+        return self::$_variations;
     }
 
     /**
@@ -314,7 +320,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         # Typecast, just in case we had a string like "2"
         $test_id = (int) $test_id;
 
-        return $this->_variations[$test_id];
+        return self::$_variations[$test_id];
     }
 
     /**
@@ -357,12 +363,12 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             if ($this->_matchEvent($test[$source], $observer_name))
             {
                 # The user doesn't have a variation for this test
-                if ( ! isset($this->_variations[$test['id']]))
+                if ( ! isset(self::$_variations[$test['id']]))
                     continue;
 
                 # This is the test we're looking for, so we're going to get the 
                 # ID of the variation for this user
-                $variation_id = $this->_variations[$test['id']]['variation']['id'];
+                $variation_id = self::$_variations[$test['id']]['variation']['id'];
 
                 # Loop through all of the test's variations to find the matching 
                 # variation information, then return the complete variation 
