@@ -108,7 +108,7 @@ casper.withPopup magento, ->
 casper.then ->
     @test.assertEvalEquals( ->
         return abTestForm.validate()
-    , true)
+    , true, "Validating a complete A/B test form returns true")
     @click ".content-header .save"
 
 

@@ -9,12 +9,13 @@ db_test = url + "Extension/tests/database/All-pages-test.php?version=" + version
 
 casper.echo "Testing first test (all pages) layout updates", "GREEN_BAR"
 
+casper.start url + "Extension/tests/delete-cookies.php"
 
 # First we're going to go to the homepage and set us up as a control.
 # Note that the test ID and variations have been hard coded using forcing (which
 # is coded into the assignVariations() method of the visitor helper). Forcing is
 # not recommended for production use.
-casper.start magento + "?__t_1=1", ->
+casper.thenOpen magento + "?__t_1=1", ->
     @test.assertSelectorHasText "#all-pages-acceptance-test", "All Pages test: Control", "The 'Control' cohort shows the correct layout update"
     @clickLabel "Laptops" # Navigate to a category
 # Ensure that the category also has this layout update
