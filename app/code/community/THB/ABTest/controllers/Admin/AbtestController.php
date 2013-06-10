@@ -43,6 +43,9 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
      *
      * The tab block adds each tab and adds content to our form container.
      *
+     * Note that we've made forms using HTML instead of using varien objects for 
+     * speed. There's no difference in usability or the results.
+     *
      * @since 0.0.1
      */
     public function newAction()
