@@ -60,6 +60,11 @@ casper.then ->
 casper.then ->
     @test.assertTitle "New A/B Test / Magento Admin", "We're on the 'New A/B test' page"
 
+    # Try validating an empty form
+    @test.assertEvalEquals( ->
+        return abTestForm.validate()
+    , false, "Validating an incomplete A/B test form returns false")
+
     @fill("form#abtest_form", {
         "test[name]": "All Pages test",
         "test[start_date]": moment().format("MMM D, YYYY")
