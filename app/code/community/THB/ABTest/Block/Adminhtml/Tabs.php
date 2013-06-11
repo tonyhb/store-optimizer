@@ -34,7 +34,7 @@ class THB_ABTest_Block_Adminhtml_Tabs extends Mage_Adminhtml_Block_Widget_Tabs
         $this->addTab('cohort_1', array(
             'label'   => Mage::helper('core/data')->__('Control'),
             'title'   => Mage::helper('core/data')->__('Control'),
-            'content' => $cohort_block->setCohort('Control')->toHtml(),
+            'content' => $cohort_block->setCohort('Control')->initForm(),
             'active'  => false,
             'class'   => 'cohort-label cohort_Control_name',
         ));
@@ -42,7 +42,7 @@ class THB_ABTest_Block_Adminhtml_Tabs extends Mage_Adminhtml_Block_Widget_Tabs
         $this->addTab('cohort_2', array(
             'label'   => Mage::helper('core/data')->__('Variation A'),
             'title'   => Mage::helper('core/data')->__('Variation A'),
-            'content' => $cohort_block->setCohort('A')->toHtml(),
+            'content' => $cohort_block->setCohort('A')->initForm(),
             'active'  => false,
             'class'   => 'cohort-label cohort_A_name',
         ));
@@ -50,7 +50,7 @@ class THB_ABTest_Block_Adminhtml_Tabs extends Mage_Adminhtml_Block_Widget_Tabs
         $this->addTab('cohort_3', array(
             'label'   => Mage::helper('core/data')->__('Variation B'),
             'title'   => Mage::helper('core/data')->__('Variation B'),
-            'content' => $cohort_block->setCohort('B')->toHtml(),
+            'content' => $cohort_block->setCohort('B')->initForm(),
             'active'  => false,
             'style'   => 'display: none',
             'class'   => 'cohort-label cohort_B_name',
@@ -59,7 +59,7 @@ class THB_ABTest_Block_Adminhtml_Tabs extends Mage_Adminhtml_Block_Widget_Tabs
         $this->addTab('cohort_4', array(
             'label'   => Mage::helper('core/data')->__('Variation C'),
             'title'   => Mage::helper('core/data')->__('Variation C'),
-            'content' => $cohort_block->setCohort('C')->toHtml(),
+            'content' => $cohort_block->setCohort('C')->initForm(),
             'active'  => false,
             'style'   => 'display: none',
             'class'   => 'cohort-label cohort_C_name',
@@ -68,7 +68,7 @@ class THB_ABTest_Block_Adminhtml_Tabs extends Mage_Adminhtml_Block_Widget_Tabs
         $this->addTab('cohort_5', array(
             'label'   => Mage::helper('core/data')->__('Variation D'),
             'title'   => Mage::helper('core/data')->__('Variation D'),
-            'content' => $cohort_block->setCohort('D')->toHtml(),
+            'content' => $cohort_block->setCohort('D')->initForm(),
             'active'  => false,
             'style'   => 'display: none',
             'class'   => 'cohort-label cohort_D_name',
