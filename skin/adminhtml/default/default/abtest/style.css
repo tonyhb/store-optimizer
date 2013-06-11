@@ -1,5 +1,8 @@
 .cf{zoom:1}.cf:before,.cf:after{content:"";display:table}.clear,.cf:after{clear:both}
 
+.preview-variation {
+	line-height: 1.6;
+}
 #graph-controls {
 	float: right;
 	color: #999;

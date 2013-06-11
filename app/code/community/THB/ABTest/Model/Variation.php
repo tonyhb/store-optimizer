@@ -150,11 +150,11 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
             $errors[] = Mage::helper('core')->__('A variation is missing a name.');
         }
 
-        if ($this->getData('theme')) {
+        if ($this->getData('package')) {
             $design = Mage::getDesign();
-            if ( ! $design->designPackageExists($this->getData('theme'), 'frontend')) {
+            if ( ! $design->designPackageExists($this->getData('package'), 'frontend')) {
                 $valid    = FALSE;
-                $errors[] = Mage::helper('core')->__('The theme "'.$this->getData('theme').'" does not exist.');
+                $errors[] = Mage::helper('core')->__('The package "'.$this->getData('package').'" does not exist.');
             }
         }
 
@@ -165,4 +165,5 @@ class THB_ABTest_Model_Variation extends THB_ABTest_Model_Abstract {
 
         return TRUE;
     }
+
 }

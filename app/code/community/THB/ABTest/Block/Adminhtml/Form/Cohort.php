@@ -54,6 +54,11 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
             "name"     => "cohort[".$this->getCohort()."][name]",
         ));
 
+        $fieldset->addfield("cohort_".$this->getCohort()."_preview", "button", array(
+            "value" => "Preview this variation",
+            "class" => "form-button scalable preview-variation",
+        ));
+
         return $this;
     }
 
@@ -77,7 +82,7 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
         $regex_renderer = Mage::getBlockSingleton("adminhtml/system_config_form_field_regexceptions");
         $regex_renderer->setForm($this->_form);
         $fieldset = $this->_form->addFieldset("cohort_".$this->getCohort()."_theme", array(
-            "legend"   => $this->__("Theme Updates (leave these blank for config defaults)"),
+            "legend"   => $this->__("Theme Updates"),
         ));
 
         # Uset when getting the data on a view form
@@ -85,47 +90,47 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
 
         $fieldset->addField("cohort_".$this->getCohort()."_package-field", "text", array(
             "label"    => $this->__("Package name"),
-            "name"     => "cohort[".$this->getCohort()."][package][name]",
+            "name"     => "cohort[".$this->getCohort()."][package]",
         ));
         $field = $fieldset->addField("cohort_".$this->getCohort()."_package_exceptions-field", "text", array(
-            "name"     => "cohort[".$this->getCohort()."][package][exceptions]",
+            "name"     => "cohort[".$this->getCohort()."][package_exceptions]",
             "comment"  => $this->__("Match expressions in the same order as displayed in the configuration."),
         ));
         $field->setRenderer($regex_renderer);
 
         $fieldset->addField("cohort_".$this->getCohort()."_templates-field", "text", array(
             "label"    => $this->__("Templates"),
-            "name"     => "cohort[".$this->getCohort()."][package][exceptions]",
+            "name"     => "cohort[".$this->getCohort()."][templates]",
         ));
         $field = $fieldset->addField("cohort_".$this->getCohort()."_templates_exceptions-field", "text", array(
-            "name"     => "cohort[".$this->getCohort()."][templates][exceptions]",
+            "name"     => "cohort[".$this->getCohort()."][templates_exceptions]",
         ));
         $field->setRenderer($regex_renderer);
 
         $fieldset->addField("cohort_".$this->getCohort()."_skin-field", "text", array(
             "label"    => $this->__("Skin (Images / CSS)"),
-            "name"     => "cohort[".$this->getCohort()."][package][exceptions]",
+            "name"     => "cohort[".$this->getCohort()."][skin]",
         ));
         $field = $fieldset->addField("cohort_".$this->getCohort()."_skin_exceptions-field", "text", array(
-            "name"     => "cohort[".$this->getCohort()."][skin][exceptions]",
+            "name"     => "cohort[".$this->getCohort()."][skin_exceptions]",
         ));
         $field->setRenderer($regex_renderer);
 
         $fieldset->addField("cohort_".$this->getCohort()."_layout-field", "text", array(
             "label"    => $this->__("Layout"),
-            "name"     => "cohort[".$this->getCohort()."][package][exceptions]",
+            "name"     => "cohort[".$this->getCohort()."][layout]",
         ));
         $field = $fieldset->addField("cohort_".$this->getCohort()."_layout_exceptions-field", "text", array(
-            "name"     => "cohort[".$this->getCohort()."][layout][exceptions]",
+            "name"     => "cohort[".$this->getCohort()."][layout_exceptions]",
         ));
         $field->setRenderer($regex_renderer);
 
         $fieldset->addField("cohort_".$this->getCohort()."_default-field", "text", array(
             "label"    => $this->__("Default"),
-            "name"     => "cohort[".$this->getCohort()."][package][exceptions]",
+            "name"     => "cohort[".$this->getCohort()."][default]",
         ));
         $field = $fieldset->addField("cohort_".$this->getCohort()."_default_exceptions-field", "text", array(
-            "name"     => "cohort[".$this->getCohort()."][default][exceptions]",
+            "name"     => "cohort[".$this->getCohort()."][default_exceptions]",
         ));
         $field->setRenderer($regex_renderer);
 
