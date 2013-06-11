@@ -12,13 +12,7 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
         # design is going to change after the first page view. This 
         # call ensures we don't get this...
 
-        // echo "<h1 style='font-size: 100px'>Constructing le design</h1>";
-
-        // @TODO: Line 250 of the visitor helper calls 
-        // `Mage_Core_Model_Translate_Inline->isAllowed( )`, which loads a new 
-        // design instance. We need to add a global $hasAssigned static property 
-        // so this is only called once
-        // Mage::helper('abtest/visitor')->assignVariations();
+         Mage::helper('abtest/visitor')->assignVariations();
     }
 
     public function getPackageName()
@@ -166,7 +160,6 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
                 foreach ($regexps as $rule) {
                     if ( ! is_array($rule)) continue;
 
-                    # @TODO: More caching
                     if ( ! empty(self::$_regexMatchCache[$rule['regexp']][$_SERVER['HTTP_USER_AGENT']]))
                     {
                         self::$_customThemeTypeCache[$serialized_regexes] = $rule['value'];
@@ -196,9 +189,6 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
 
     protected function _fallback($file, array &$params, array $fallbackScheme = array(array()))
     {
-        # echo "<div style='text-align:left;padding:10px'>";
-        # var_dump("Fallback for $file", $fallbackScheme);
-        # echo "</div>";
         return parent::_fallback($file, $params, $fallbackScheme);
     }
 

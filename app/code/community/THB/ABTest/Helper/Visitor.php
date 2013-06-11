@@ -247,7 +247,10 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      */
     private function _writeVariationData()
     {
-        $data = Mage::helper('core')->jsonEncode(self::$_variations);
+        # Don't use Magento's jsonEncode because it pointlessly loads some 
+        # extra models (including Design_Package, which causes a recursive 
+        # loop). This will almost certainly fall back to the native json_encode()
+        $data = Zend_Json::encode(self::$_variations);
         $data = base64_encode($data);
         $data = mcrypt_encrypt(MCRYPT_CAST_128, self::COOKIE_KEY, $data, MCRYPT_MODE_ECB);
         $data = base64_encode($data);
