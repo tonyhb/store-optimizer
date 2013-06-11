@@ -26,7 +26,22 @@
 	}
 
 /** Grid **/
-
+#view-test {
+	position: relative;
+}
+#no-data {
+	position: absolute;
+	width: 100%;
+	height: 20px;
+	line-height: 20px;
+	padding: 127px 0;
+	background: #fbfbfb;
+	z-index: 999;
+	text-align: center;
+	color: #ccc;
+	text-transform: uppercase;
+	letter-spacing: 0.75em;
+}
 #view-test .grid th a span {
 	line-height: 18px;
 }
