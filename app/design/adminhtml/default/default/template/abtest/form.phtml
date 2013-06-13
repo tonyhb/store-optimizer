@@ -90,6 +90,23 @@
                         t.style.color = '#888';
                     }
 
+                    // Also, if the target isn't all pages we don't allow them 
+                    // to change the theme - it won't work.
+                    if (e.target.value == "*") {
+                        $$('.all_pages_note').each(function(el) {
+                            el.style.display = 'none';
+                        });
+                        $$('.theme-table').each(function(el) {
+                            el.style.display = 'block';
+                        });
+                    } else {
+                        $$('.all_pages_note').each(function(el) {
+                            el.style.display = 'block';
+                        });
+                        $$('.theme-table').each(function(el) {
+                            el.style.display = 'none';
+                        });
+                    }
                 },
 
                 // Shows the right amount of variant tabs on the left hand side.

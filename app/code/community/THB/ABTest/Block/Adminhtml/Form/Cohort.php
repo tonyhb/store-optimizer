@@ -82,8 +82,19 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
         $regex_renderer = Mage::getBlockSingleton("adminhtml/system_config_form_field_regexceptions");
         $regex_renderer->setForm($this->_form);
         $fieldset = $this->_form->addFieldset("cohort_".$this->getCohort()."_theme", array(
-            "legend"   => $this->__("Theme Updates"),
+            "legend"      => $this->__("Theme Updates"),
+            "table_class" => "form-list theme-table"
         ));
+
+        # Add a note which says that themes can only be tested on all pages. 
+        # Note that the $fieldset->addElement can only accept types inheriting 
+        # the varien form abstract class. The only usable class for HTML is the 
+        # note, which (at least on 1.4) doesn't allow classes, so we need to use 
+        # setAfterElementHtml to add a new span with our class - this will be on 
+        # all 5 variation forms and saves the ID being duplicated 5 times.
+        $all_pages_note = new Varien_Data_Form_Element_Note();
+        $all_pages_note->setHtmlId("cohort_".$this->getCohort()."_note")->setAfterElementHtml("<span class='all_pages_note'>Themes can only be tested on all pages</span>");
+        $fieldset->addElement($all_pages_note);
 
         # Uset when getting the data on a view form
         # $model = Mage::getModel("adminhtml/system_config_backend_serialized_array");
