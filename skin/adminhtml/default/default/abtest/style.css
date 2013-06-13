@@ -1,7 +1,13 @@
 .cf{zoom:1}.cf:before,.cf:after{content:"";display:table}.clear,.cf:after{clear:both}
 
+.all_pages_note {
+	display: none;
+	text-align: center;
+	padding: 30px;
+}
 .preview-variation {
 	line-height: 1.6;
+	width: 156px;
 }
 #graph-controls {
 	float: right;
@@ -36,7 +42,7 @@
 	line-height: 20px;
 	padding: 127px 0;
 	background: #fbfbfb;
-	z-index: 999;
+	z-index: 1;
 	text-align: center;
 	color: #ccc;
 	text-transform: uppercase;

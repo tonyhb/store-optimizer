@@ -21,13 +21,15 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
     {
         $this->_form = new Varien_Data_Form();
 
-        # $this->_fieldsetRenderer->setForm($this->_form);
-
         $this->_addNameFieldset()
             ->_addXmlFieldset()
             ->_addThemeFieldset();
 
-        return $this->_form->toHtml();
+        # We need to add a div around our form. The useContainer form method 
+        # adds an actual <form> tag which we already have.
+        $cohort = $this->getCohort();
+        $html = $this->_form->toHtml();
+        return "<div id='cohort-{$cohort}' class='cohort-form'>{$html}</div>";
     }
 
     protected function _addNameFieldset()

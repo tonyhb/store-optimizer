@@ -437,7 +437,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         if ($cookie = $this->getPreview())
         {
             if ($this->_matchEvent($cookie['observer'], $observer_event_name))
-                return $cookie['xml'];
+                return $cookie['layout_update'];
         }
 
         return FALSE;

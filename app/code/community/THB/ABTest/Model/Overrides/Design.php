@@ -11,7 +11,6 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
         # put into a cohort with a different theme, the website's 
         # design is going to change after the first page view. This 
         # call ensures we don't get this...
-
          Mage::helper('abtest/visitor')->assignVariations();
     }
 
@@ -62,8 +61,10 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
      */
     public function getFallbackTheme()
     {
-        $variation = Mage::helper('abtest/visitor')->getVariationsFromObserver('*');
-        $variation = array_shift($variation);
+        if ( ! $variation = $this->_getVariation())
+        {
+            return parent::getFallbackTheme();
+        }
 
         if (isset($variation["default"]))
         {
@@ -88,9 +89,11 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
      */
     public function getTheme($type)
     {
-        #return parent::getTheme($type);
-        $variation = Mage::helper('abtest/visitor')->getVariationsFromObserver('*');
-        $variation = array_shift($variation);
+        if ( ! $variation = $this->_getVariation())
+        {
+            # There's no variation altering themes
+            return parent::getTheme($type);
+        }
 
         # The particular $type has overrides - for example, templates.
         # This will not match "default" overrides, which are catch-all
@@ -124,9 +127,9 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
             return $this->_theme[$type];
         }
 
+        # We had a variation but it turns out it didn't alter any themes. Run 
+        # the parent method.
         return parent::getTheme($type);
-
-        return $return;
     }
 
     /**
@@ -148,6 +151,14 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
     {
         if ( ! empty($_SERVER['HTTP_USER_AGENT']))
         {
+            # Quick sanity check: the argument passed by previews is an array, not 
+            # a serialized string. I know this is a particularly horrible hack but 
+            # we're going to do it anyways. This has no speed impact because 
+            # visitors aren't previewing :)
+            if (is_array($serialized_regexes)) {
+                $serialized_regexes = serialize($serialized_regexes);
+            }
+
             if ( ! empty(self::$_customThemeTypeCache[$serialized_regexes]))
             {
                 return self::$_customThemeTypeCache[$serialized_regexes];
@@ -190,6 +201,31 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
     protected function _fallback($file, array &$params, array $fallbackScheme = array(array()))
     {
         return parent::_fallback($file, $params, $fallbackScheme);
+    }
+
+    /**
+     * Protected helper method to remove some code duplication. This just loads 
+     * either the preview, the all pages variation, or FALSE for methods which 
+     * alter themes
+     *
+     * @return array|bool
+     */
+    protected function _getVariation()
+    {
+        if ($preview = Mage::helper('abtest/visitor')->getPreview())
+        {
+            return $preview;
+        }
+        else
+        {
+            $variation = Mage::helper('abtest/visitor')->getVariationsFromObserver('*');
+            if ( ! $variation) {
+                return FALSE;
+            }
+            return array_shift($variation);
+        }
+
+        return FALSE;
     }
 
 }
