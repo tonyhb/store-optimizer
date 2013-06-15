@@ -43,10 +43,16 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
             ))
             ->setRenderer($this->_fieldsetRenderer);
 
+        // Set the name and split percentage values according to the cohort
+        $percentage = "0";
         if ($this->getCohort() == "Control") {
             $value = "Control";
+            $percentage = "70";
         } else {
             $value = "Variation ".$this->getCohort();
+            if ($this->getCohort() == "A") {
+                $percentage = "30";
+            }
         }
 
         $fieldset->addField("$baseName-field", "text", array(
@@ -59,6 +65,11 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
         $fieldset->addfield("cohort_".$this->getCohort()."_preview", "button", array(
             "value" => "Preview this variation",
             "class" => "form-button scalable preview-variation",
+        ));
+
+        $fieldset->addField("cohort_".$this->getCohort()."_percentage", "hidden", array(
+            "name"  => "cohort[".$this->getCohort()."][split_percentage]",
+            "value" => $percentage
         ));
 
         return $this;
