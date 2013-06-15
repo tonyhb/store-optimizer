@@ -194,7 +194,7 @@
                     // page is frozen. 
                     //
                     // To avoid all of this, we used a setTimeout. waiting just 
-                    // 1 millisecnd lets the DOM update.
+                    // a couple of millisecnds lets the DOM update.
                     window.setTimeout(function() {
                         var params = $("abtest_form").serialize(true);
                         // Add the selected cohort and whether this is the control 
@@ -211,7 +211,7 @@
                         );
                         window.open('<?php echo Mage::getStoreConfig('web/unsecure/base_url') ?>', 'preview');
                         button_el.value = "Preview this variation";
-                    }, 1);
+                    }, 3);
                 }
             };
 
