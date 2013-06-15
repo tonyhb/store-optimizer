@@ -126,7 +126,7 @@ casper.then ->
 # to load a PHP script in the databases test directory which will load the data
 # for us.
 #
-casper.thenOpen url + "Extension/tests/database/All-pages-test.php?version=" + version, ->
+casper.thenOpen url + "Extension/tests/database/View.php?version=" + version + "&name=All pages test", ->
     @test.assertSelectorHasText "#test-name", "All Pages test", "The test name is saved correctly"
     @test.assertSelectorHasText "#start-date", moment().format("YYYY-MM-DD"), "The test start date is saved correctly"
     @test.assertSelectorHasText "#observer-target", "*", "The observer target is saved correctly"

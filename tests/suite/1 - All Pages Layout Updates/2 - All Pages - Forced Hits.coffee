@@ -1,10 +1,8 @@
 # Standard boilerplate...
 version = casper.cli.get("v") || "1_4_2_0"
-url = casper.cli.get("url") || "http://127.0.0.1:8888/"
-
-# Helper variables
+url     = casper.cli.get("url") || "http://127.0.0.1:8888/"
 magento = url + version + "/"
-db_test = url + "Extension/tests/database/All-pages-test.php?version=" + version
+db_test = url + "Extension/tests/database/View.php?version=" + version + "&name=All pages test"
 cookies = url + "Extension/tests/database/Delete-cookies.php?version=" + version
 
 
