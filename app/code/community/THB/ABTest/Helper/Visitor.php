@@ -133,15 +133,22 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             $_session_data_has_changed = TRUE;
         }
 
+        self::$_has_assigned = TRUE;
+
         # If there's new session data or this is a new visitor, log them.
         if ($_session_data_has_changed OR Mage::getSingleton('core/cookie')->get('cohort_data') === FALSE)
         {
-            # Write our cached DB queries
-            $this->_writeVariationData();
-            $optimizer->runQueries();
+            try
+            {
+                # Write our cached DB queries
+                $this->_writeVariationData();
+                $optimizer->runQueries();
+            }
+            catch (Exception $e)
+            {
+                self::$_has_assigned = FALSE;
+            }
         }
-
-        self::$_has_assigned = TRUE;
     }
 
     /**

@@ -10,8 +10,13 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
      * a variation-by-variation basis.
      *
      * Also, this assigns the users to variations because it is the first method 
-     * to be called in each of the design overrides, and a user needs to be in 
-     * a cohort before modifications can be made.
+     * to be called (from V1.7 onwards) in each of the design overrides, and a 
+     * user needs to be in a cohort before modifications can be made.
+     *
+     * For versions 1.4 - 1.6, getTheme also runs assignVariations() as this is 
+     * the first method called in all of our overrides. We provide some form of 
+     * optimization similar to memoization because the assignVariation method 
+     * can only run once, so this doesn't impact speed.
      *
      * We CAN'T put assignVariations() in the __construct method because, if so, 
      * admin users trigger visits when browsing the admin side, and the getArea() 
@@ -95,11 +100,28 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
     }
 
     /**
-     * Applies theme overrides for each variation
+     * Applies theme overrides for each variation.
+     *
+     * For versions 1.4 - 1.6, getTheme also runs assignVariations() as this is 
+     * the first method called in all of our overrides. We provide some form of 
+     * optimization similar to memoization because the assignVariation method 
+     * can only run once, so this doesn't impact speed.
+     *
+     * We CAN'T put assignVariations() in the __construct method because, if so, 
+     * admin users trigger visits when browsing the admin side, and the getArea() 
+     * method isn't accurate when called in __construct to prevent this.
      *
      */
     public function getTheme($type)
     {
+        if ($this->getArea() != 'adminhtml')
+        {
+            # Assign the users to variations if they're on the main website. 
+            # Avoid adminhtml because that logs incorrect stats when a user has 
+            # just made a test.
+            Mage::helper('abtest/visitor')->assignVariations();
+        }
+
         if ( ! $variation = $this->_getVariation())
         {
             # There's no variation altering themes
