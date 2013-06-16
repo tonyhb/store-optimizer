@@ -70,6 +70,17 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
     }
 
     /**
+     * Returns whether we have assigned the variations yet.
+     *
+     * @since 0.0.1
+     * @return bool
+     */
+    public function getHasAssigned()
+    {
+        return self::$_has_assigned;
+    }
+
+    /**
      * Assigns variations to the current visitor for all running tests.
      *
      * @since 0.0.1
@@ -122,15 +133,22 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
             $_session_data_has_changed = TRUE;
         }
 
+        self::$_has_assigned = TRUE;
+
         # If there's new session data or this is a new visitor, log them.
         if ($_session_data_has_changed OR Mage::getSingleton('core/cookie')->get('cohort_data') === FALSE)
         {
-            # Write our cached DB queries
-            $this->_writeVariationData();
-            $optimizer->runQueries();
+            try
+            {
+                # Write our cached DB queries
+                $this->_writeVariationData();
+                $optimizer->runQueries();
+            }
+            catch (Exception $e)
+            {
+                self::$_has_assigned = FALSE;
+            }
         }
-
-        self::$_has_assigned = TRUE;
     }
 
     /**
@@ -181,16 +199,16 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
                         break;
                     }
                 }
-            }
 
-            # Sanity check: have we actually got a variation, or has someone 
-            # messed around with the split percentages and the user is left 
-            # designless? Or, this may be because we've got a returning visitor.
-            if ( ! isset(self::$_variations[$test_data['id']]))
-            {
-                # Assign them variation #1, which is the control.
-                $control = array_shift($variations);
-                $this->_assignVariation($test_data['id'], $control['id'], $test_data['name'], $control['name'], TRUE);
+                # Sanity check: have we actually got a variation, or has someone 
+                # messed around with the split percentages and the user is left 
+                # designless? Or, this may be because we've got a returning visitor.
+                if ( ! isset(self::$_variations[$test_data['id']]))
+                {
+                    # Assign them variation #1, which is the control.
+                    $control = array_shift($variations);
+                    $this->_assignVariation($test_data['id'], $control['id'], $test_data['name'], $control['name'], TRUE);
+                }
             }
         }
 
@@ -247,7 +265,10 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      */
     private function _writeVariationData()
     {
-        $data = Mage::helper('core')->jsonEncode(self::$_variations);
+        # Don't use Magento's jsonEncode because it pointlessly loads some 
+        # extra models (including Design_Package, which causes a recursive 
+        # loop). This will almost certainly fall back to the native json_encode()
+        $data = Zend_Json::encode(self::$_variations);
         $data = base64_encode($data);
         $data = mcrypt_encrypt(MCRYPT_CAST_128, self::COOKIE_KEY, $data, MCRYPT_MODE_ECB);
         $data = base64_encode($data);
@@ -434,7 +455,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
         if ($cookie = $this->getPreview())
         {
             if ($this->_matchEvent($cookie['observer'], $observer_event_name))
-                return $cookie['xml'];
+                return $cookie['layout_update'];
         }
 
         return FALSE;

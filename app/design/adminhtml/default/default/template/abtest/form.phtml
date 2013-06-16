@@ -15,7 +15,6 @@
     <script type="text/javascript">
         abTestForm = new varienForm('abtest_form', '');
         abTestForm.validationUrl = '<?php echo $this->getUrl('*/*/validate'); ?>';
-        delete window.console;
         (function(d) {
             var abTest = {
                 cohorts: 2,
@@ -48,8 +47,8 @@
                     $('split_traffic_evenly').observe('click', abTest.splitControlTrafficEvenly);
 
                     // Preview XML
-                    $$('.preview-xml').each(function(el) {
-                        $(el).observe('click', function(event) { abTest.previewXml(el); });
+                    $$('.preview-variation').each(function(el) {
+                        $(el).observe('click', function(event) { abTest.previewVariation(el); });
                     });
 
                     $$('.cohort-name').each(function(input) {
@@ -90,6 +89,23 @@
                         t.style.color = '#888';
                     }
 
+                    // Also, if the target isn't all pages we don't allow them 
+                    // to change the theme - it won't work.
+                    if (e.target.value == "*") {
+                        $$('.all_pages_note').each(function(el) {
+                            el.style.display = 'none';
+                        });
+                        $$('.theme-table').each(function(el) {
+                            el.style.display = 'block';
+                        });
+                    } else {
+                        $$('.all_pages_note').each(function(el) {
+                            el.style.display = 'block';
+                        });
+                        $$('.theme-table').each(function(el) {
+                            el.style.display = 'none';
+                        });
+                    }
                 },
 
                 // Shows the right amount of variant tabs on the left hand side.
@@ -170,38 +186,32 @@
                     }
                 },
 
-                previewXml: function(button_el) {
-                    var xml, variation, theme, cohort = button_el.getAttribute('data-cohort');
-
-                    xml = d.getElementById(cohort + '_xml').value;
-                    xml = xml.replace(/(\r\n|\n|\r)/gm, "");
-
-                    variation = d.getElementById(cohort + '_name').value;
-                    theme = d.getElementById(cohort + '_theme').value;
-
-                    // Is this the control? We use ints instead of bools because 
-                    // they are correctly typecasted by PHP in the preview 
-                    // action.
-                    is_control = (cohort.indexOf("Control") > 0) ? 1 : 0;
-
-                    // Post a new request to the preview action with our xml, 
-                    // observer, and test name, then open a new window.
-                    new Ajax.Request(
-                        '<?php echo Mage::helper('adminhtml')->getUrl('*/abtest/preview/') ?>',
-                        {
-                            method: 'post',
-                            asynchronous: false,
-                            parameters: {
-                                xml: xml,
-                                theme: theme,
-                                observer: d.getElementById('el_observer_target').value,
-                                test_name: d.getElementById('el_test_name').value.replace(' (Unsaved)', ''),
-                                variation_name: variation,
-                                is_control: is_control
+                previewVariation: function(button_el) {
+                    button_el.value = "Loading preview...";
+                    // Because of JS' single threaded nature the below code will 
+                    // execute before updating button_el.value. This means that 
+                    // the synchronous Ajax request will make it look like the 
+                    // page is frozen. 
+                    //
+                    // To avoid all of this, we used a setTimeout. waiting just 
+                    // a couple of millisecnds lets the DOM update.
+                    window.setTimeout(function() {
+                        var params = $("abtest_form").serialize(true);
+                        // Add the selected cohort and whether this is the control 
+                        // or not for the cookie.
+                        params.used_cohort = button_el.up(".cohort-form").getAttribute("id").replace("cohort-", "");
+                        params.is_control = (params.used_cohort.indexOf("Control") >= 0) ? 1 : 0;
+                        new Ajax.Request(
+                            '<?php echo Mage::helper('adminhtml')->getUrl('*/abtest/preview/') ?>',
+                            {
+                                method: 'post',
+                                asynchronous: false,
+                                parameters: params
                             }
-                        }
-                    );
-                    window.open('<?php echo Mage::getStoreConfig('web/unsecure/base_url') ?>', 'preview');
+                        );
+                        window.open('<?php echo Mage::getStoreConfig('web/unsecure/base_url') ?>', 'preview');
+                        button_el.value = "Preview this variation";
+                    }, 3);
                 }
             };
 

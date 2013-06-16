@@ -43,6 +43,9 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
      *
      * The tab block adds each tab and adds content to our form container.
      *
+     * Note that we've made forms using HTML instead of using varien objects for 
+     * speed. There's no difference in usability or the results.
+     *
      * @since 0.0.1
      */
     public function newAction()
@@ -166,28 +169,23 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
             $variation = Mage::getModel('abtest/variation')->load($variation_id);
             $test      = Mage::getModel('abtest/test')->load($variation['test_id']);
 
-            $data = array(
+            $data = array_merge($variation->getData(), array(
                 'init_at'        => date('Y-m-d H:i:s'),
                 'observer'       => $test->getData('observer_target'),
-                'xml'            => $variation->getData('layout_update'),
-                'theme'          => $variation->getData('theme'),
-                'variation_name' => $variation->getData('name'),
                 'is_control'     => (bool) $variation->getData('is_control'),
                 'test_name'      => $test->getData('name'),
                 'running'        => TRUE, # This is run from the test overview page, which means the test is running
                 'key'            => Mage::getSingleton('core/session')->getFormKey(),
-            );
+            ));
         }
-        else if ($data = $this->getRequest()->getPost())
+        else if ($post = $this->getRequest()->getPost())
         {
-            $data = array(
+            $data = $post['cohort'][$post['used_cohort']]; # Get the used cohort's data
+            $data += array(
                 'init_at'        => date('Y-m-d H:i:s'),
-                'observer'       => $data['observer'],
-                'xml'            => $data['xml'],
-                'theme'          => $data['theme'],
-                'variation_name' => $data['variation_name'],
-                'is_control'     => (bool) $data['is_control'],
-                'test_name'      => $data['test_name'],
+                'observer'       => $post['test']['observer_target'],
+                'is_control'     => (bool) $post['is_control'],
+                'test_name'      => $post['test']['name'],
                 'running'        => FALSE, # This is run from the create test page, so the test isn't running already
                 'key'            => Mage::getSingleton('core/session')->getFormKey(),
             );

@@ -5,7 +5,7 @@ require 'Base.php';
 # Attempt to load the test we just created
 $test = Mage::getModel('abtest/test')
     ->getCollection()
-    ->addFieldToFilter("name", "All Pages test")
+    ->addFieldToFilter("name", $_GET['name'])
     ->getFirstItem();
 
 if ($test->getData() == array()) {

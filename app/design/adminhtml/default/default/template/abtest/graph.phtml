@@ -1,5 +1,15 @@
 <?php $helper = Mage::helper('abtest/graph')->setTest($this->getTest()) ?>
 
+<?php
+    $start = new DateTime($this->getTest()->getStartDate());
+    $now   = new DateTime();
+    $now->modify("-1 day");
+?>
+
+<?php if ($now <= $start):?>
+    <div id="no-data">No graph data</div>
+<?php endif; ?>
+
 <div id="graph" style="width: 100%; height: 250px">
 </div>
 

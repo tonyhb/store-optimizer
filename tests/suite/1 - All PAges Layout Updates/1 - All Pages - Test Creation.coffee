@@ -3,28 +3,23 @@
 # It would be cool if we could move these to a casper pre-script, but it doesn't
 # seem like we can create global variables or assign properties to the casper
 # object in presecripts. 
-version = casper.cli.get("v") || "1_4_2_0"
-url = casper.cli.get("url") || "http://127.0.0.1:8888/"
-magento = url + version + "/"
-
-# Get the usernames and passwords
+version  = casper.cli.get("v") || "1_4_2_0"
+url      = casper.cli.get("url") || "http://127.0.0.1:8888/"
+magento  = url + version + "/"
 username = casper.cli.get("u") || "admin"
 password = casper.cli.get("p") || "password1"
+moment   = require('moment');
 
-moment = require('moment');
 
+casper.echo "Testing: 1 - All Pages - Test Creation", "GREEN_BAR"
 
-##
-# First, we have to truncate the test tables.
-##
+# Pre. we have to truncate the test tables.
 casper.start url + "Extension/tests/database/Truncate.php?version=" + version, ->
-    @echo "The A/B test tables have been truncated.", "GREEN_BAR"
+    @echo "The A/B test tables have been truncated.", "INFO"
 
-##
-# Stage 1: Load the admin panel
-#
+
+# 1. Load the admin panel
 casper.thenOpen magento + "admin", ->
-    @echo "Creating the first test.", "GREEN_BAR"
     # We may already be logged in
     if @getTitle() == "Dashboard / Magento Admin"
         @test.comment "We're already logged in, skipping the login page."
@@ -33,9 +28,7 @@ casper.thenOpen magento + "admin", ->
     @fill("form#loginForm", { "login[username]": username, "login[password]": password }, true)
 
 
-#
-# Navigate to the A/B test overview page
-#
+# 2. Navigate to the A/B test overview page
 casper.then ->
     @test.assertTitle "Dashboard / Magento Admin", "We logged in to the dashboard successfully"
     # Find the A/B test URL
@@ -46,9 +39,7 @@ casper.then ->
     @open(link.href)
 
 
-#
-# Navigate to the A/B test creation page
-#
+# 3. Navigate to the A/B test creation page
 casper.then ->
     @test.assertTitle "Manage A/B Tests / Magento Admin", "We're on the 'Manage A/B tests' page"
     @clickLabel("New A/B Test")
@@ -83,7 +74,7 @@ casper.then ->
     @clickLabel("(split evenly)", "a")
 
     # Hit the preview for Variation Aand see if previewing works
-    @click("#abtest_form_tabs_cohort_2_content button")
+    @click("#cohort_A_preview")
 
 
 #
@@ -92,8 +83,9 @@ casper.then ->
 casper.waitForPopup(magento, ->
     @test.assertEquals(@.popups.length, 1, "Previewing a variation opened the homepage in a popup")
 , ->
+    console.log @popups
     @fail "Couldn't load the preview on time"
-, 10000)
+, 30000)
 
 
 #
@@ -134,7 +126,7 @@ casper.then ->
 # to load a PHP script in the databases test directory which will load the data
 # for us.
 #
-casper.thenOpen url + "Extension/tests/database/All-pages-test.php?version=" + version, ->
+casper.thenOpen url + "Extension/tests/database/View.php?version=" + version + "&name=All pages test", ->
     @test.assertSelectorHasText "#test-name", "All Pages test", "The test name is saved correctly"
     @test.assertSelectorHasText "#start-date", moment().format("YYYY-MM-DD"), "The test start date is saved correctly"
     @test.assertSelectorHasText "#observer-target", "*", "The observer target is saved correctly"
@@ -145,14 +137,17 @@ casper.thenOpen url + "Extension/tests/database/All-pages-test.php?version=" + v
     @test.assertSelectorHasText "#conversions", "0", "There aren't any conversions (as the test has just been created)"
     @test.assertSelectorHasText "#total-variations", "3", "All three variations were saved"
     @test.assertSelectorHasText ".control.name", "Control", "The control is named correctly"
+    @test.assertSelectorHasText ".control.split_percentage", "33", "The control has the correct split percentage"
     @test.assertEvalEquals ->
         return document.querySelector(".control.xml").innerHTML
     , '<reference name="after_body_start"><block name="ab.test.block" type="core/text"><action method="setText"><text> &lt;h1 id="all-pages-acceptance-test"&gt;All Pages test: Control&lt;/h1&gt;</text></action></block></reference>', "The control has the correct layout update"
     @test.assertSelectorHasText ".variation-a.name", "Variation A", "The first variation is named correctly"
+    @test.assertSelectorHasText ".variation-a.split_percentage", "33", "The first variation has the correct split percentage"
     @test.assertEvalEquals ->
         return document.querySelector(".variation-a.xml").innerHTML
     , '<reference name="after_body_start"><block name="ab.test.block" type="core/text"><action method="setText"><text> &lt;h1 id="all-pages-acceptance-test"&gt;All Pages test: Variation A&lt;/h1&gt;</text></action></block></reference>', "The first variation has the correct layout update"
     @test.assertSelectorHasText ".variation-b.name", "Variation B", "The second variation is named correctly"
+    @test.assertSelectorHasText ".variation-b.split_percentage", "33", "The second variation has the correct split percentage"
     @test.assertEvalEquals ->
         return document.querySelector(".variation-b.xml").innerHTML
     , '<reference name="after_body_start"><block name="ab.test.block" type="core/text"><action method="setText"><text> &lt;h1 id="all-pages-acceptance-test"&gt;All Pages test: Variation B&lt;/h1&gt;</text></action></block></reference>', "The second variation has the correct layout update"
