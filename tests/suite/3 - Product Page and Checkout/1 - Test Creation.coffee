@@ -9,12 +9,14 @@ magento  = url + version + "/"
 username = casper.cli.get("u") || "admin"
 password = casper.cli.get("p") || "password1"
 db_test  = url + "Extension/tests/database/View.php?version=" + version + "&name=Product Page and Checkout"
+cookies  = url + "Extension/tests/database/Delete-cookies.php?version=" + version
 moment   = require('moment');
 casper.echo "Testing: 3 - Product Page and Checkout - Test Creation", "GREEN_BAR"
 
 
 # Pre. we have to truncate the test tables.
 casper.start url + "Extension/tests/database/Truncate.php?version=" + version
+casper.thenOpen cookies
 
 # 1. View the website so we're a returning visitor. This enables us to test the 
 # "only test new visitors" setting
@@ -85,6 +87,9 @@ casper.thenOpen magento, ->
     @clickLabel "Nine West Women's Lucero Pump"
 casper.then ->
     @click ".products-grid a"
+casper.then ->
+    @page.deleteCookie("cohort_data")
+    @page.deleteCookie("frontend")
 casper.thenOpen db_test, ->
     @test.assertSelectorHasText "#visitors", "0",        "Returning visitors aren't tracked when the test includes only new visitors"
     @test.assertSelectorHasText "#views", "0",           "Returning views aren't tracked when the test includes only new visitors"
@@ -92,6 +97,6 @@ casper.thenOpen db_test, ->
     @test.assertSelectorHasText ".control.views",        "0", "'Control' has the right number of views"
     @test.assertSelectorHasText ".variation-a.visitors", "0", "'Variation A' has the right number of views"
     @test.assertSelectorHasText ".variation-a.views",    "0", "'Variation A' has the right number of visitors"
-
+casper.thenOpen cookies
 casper.run ->
     @test.done()

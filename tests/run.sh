@@ -19,13 +19,13 @@ done
 
 if [ -z "${RUN+xxx}" ]; then
     # The run flag wasn't set
-    casperjs test --cookies-file=./cookies.txt --pre=includes/pre.coffee ./suite/
+    casperjs test --cookies-file=./.cookies.txt --pre=includes/pre.coffee ./suite/
     exit
 fi
 
 if [ -z "${VERSION+xxx}" ]; then
     # The run flag wasn't set
-    casperjs test --cookies-file=./cookies.txt --pre=includes/pre.coffee ./suite/
+    casperjs test --cookies-file=./.cookies.txt --pre=includes/pre.coffee ./suite/
     exit
 fi
 
@@ -51,16 +51,18 @@ else
     done
 fi
 
-echo "$SUITEPATH"
+# Delete the cookie file
+rm ".cookies.txt"
 
 # Are we testing multiple versions?
 IFS=','
 for V in $VERSION
 do
     if [[ -n "$DEBUG" ]]; then
-        casperjs test --cookies-file=./cookies.txt --pre=includes/pre.coffee --log-level=debug --direct --fail-fast $SUITEPATH --run=ok --v=$V
+        casperjs test --cookies-file=./.cookies.txt --pre=includes/pre.coffee --log-level=debug --direct --fail-fast $SUITEPATH --run=ok --v=$V
     else
-        casperjs test --cookies-file=./cookies.txt --pre=includes/pre.coffee --fail-fast $SUITEPATH --run=ok --v=$V
+        casperjs test --cookies-file=./.cookies.txt --pre=includes/pre.coffee --fail-fast $SUITEPATH --run=ok --v=$V
     fi
 done
 
+rm ".cookies.txt"
