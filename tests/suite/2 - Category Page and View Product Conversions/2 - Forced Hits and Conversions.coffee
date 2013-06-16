@@ -8,8 +8,8 @@ casper.echo "Testing: 2 - Category Page and Viewed Product Conversions - Forced 
 
 # 1. View the homepage as control
 #    Visitors: 1 / Views: 1 (We should only register a view on categories)
-casper.thenOpen cookies
-casper.start magento + "?__t_2=4", ->
+casper.start cookies
+casper.thenOpen magento + "?__t_2=4", ->
     @test.assertTitle "Home page", "We're on the homepage with Control"
     @clickLabel "Furniture"
 casper.then ->
