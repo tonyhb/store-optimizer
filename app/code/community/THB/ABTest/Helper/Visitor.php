@@ -181,16 +181,16 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
                         break;
                     }
                 }
-            }
 
-            # Sanity check: have we actually got a variation, or has someone 
-            # messed around with the split percentages and the user is left 
-            # designless? Or, this may be because we've got a returning visitor.
-            if ( ! isset(self::$_variations[$test_data['id']]))
-            {
-                # Assign them variation #1, which is the control.
-                $control = array_shift($variations);
-                $this->_assignVariation($test_data['id'], $control['id'], $test_data['name'], $control['name'], TRUE);
+                # Sanity check: have we actually got a variation, or has someone 
+                # messed around with the split percentages and the user is left 
+                # designless? Or, this may be because we've got a returning visitor.
+                if ( ! isset(self::$_variations[$test_data['id']]))
+                {
+                    # Assign them variation #1, which is the control.
+                    $control = array_shift($variations);
+                    $this->_assignVariation($test_data['id'], $control['id'], $test_data['name'], $control['name'], TRUE);
+                }
             }
         }
 
