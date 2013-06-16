@@ -70,6 +70,17 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
     }
 
     /**
+     * Returns whether we have assigned the variations yet.
+     *
+     * @since 0.0.1
+     * @return bool
+     */
+    public function getHasAssigned()
+    {
+        return self::$_has_assigned;
+    }
+
+    /**
      * Assigns variations to the current visitor for all running tests.
      *
      * @since 0.0.1
