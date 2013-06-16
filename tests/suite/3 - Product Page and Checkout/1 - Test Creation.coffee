@@ -18,7 +18,7 @@ casper.start url + "Extension/tests/database/Truncate.php?version=" + version
 
 # 1. View the website so we're a returning visitor. This enables us to test the 
 # "only test new visitors" setting
-casper.open magento
+casper.thenOpen magento
 
 # 2. Load the admin panel and navigate to the A/B test overview page
 casper.thenOpen magento + "admin", ->
@@ -78,7 +78,7 @@ casper.thenOpen db_test, ->
     @test.assertEvalEquals ->
         return document.querySelector(".variation-a.xml").innerHTML
     , '<reference name="after_body_start"><block name="ab.test.block" type="core/text"><action method="setText"><text> &lt;h1 id="all-pages-acceptance-test"&gt;Variation A&lt;/h1&gt;</text></action></block></reference>', "The first variation has the correct layout update"
-    @echo "The test has been created successfully", "GREEN_BAR"
+    @echo "The test has been created successfully", "INFO"
 
 # 6. Test a returning visitor - this shouldn't track any statistics 
 casper.thenOpen magento, ->
