@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts ":rdv:" opt; do
+while getopts ":rdv:s:" opt; do
   case $opt in
     r)
       RUN=1
@@ -10,6 +10,9 @@ while getopts ":rdv:" opt; do
       ;;
     v)
       VERSION=$OPTARG
+      ;;
+    s)
+      SUITES=$OPTARG
       ;;
   esac
 done
@@ -26,14 +29,38 @@ if [ -z "${VERSION+xxx}" ]; then
     exit
 fi
 
+IFS=','
+
+# Are we testing selected suites only?
+if [ -z "${SUITES}" ]; then
+    SUITEPATH="./suite/"
+else
+    SUITEPATH=""
+    # Go through each numbered suite
+    for SUITE in $SUITES
+    do
+        for DIR in "$PWD/suite/$SUITE - "*/
+        do
+            #DIR=$(printf '%q' $DIR)
+            if [ -z "${SUITEPATH}" ]; then
+                SUITEPATH="$DIR"
+            else
+                SUITEPATH="$SUITEPATH $DIR"
+            fi
+        done
+    done
+fi
+
+echo "$SUITEPATH"
+
 # Are we testing multiple versions?
 IFS=','
 for V in $VERSION
 do
     if [[ -n "$DEBUG" ]]; then
-        casperjs test --cookies-file=./cookies.txt --pre=includes/pre.coffee --log-level=debug --direct --fail-fast ./suite/ --run=ok --v=$V
+        casperjs test --cookies-file=./cookies.txt --pre=includes/pre.coffee --log-level=debug --direct --fail-fast $SUITEPATH --run=ok --v=$V
     else
-        casperjs test --cookies-file=./cookies.txt --pre=includes/pre.coffee --fail-fast ./suite/ --run=ok --v=$V
+        casperjs test --cookies-file=./cookies.txt --pre=includes/pre.coffee --fail-fast $SUITEPATH --run=ok --v=$V
     fi
 done
 
