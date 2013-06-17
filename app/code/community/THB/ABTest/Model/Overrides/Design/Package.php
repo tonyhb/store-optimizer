@@ -1,6 +1,6 @@
 <?php
 
-class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
+class THB_ABTest_Model_Overrides_Design_Package extends Mage_Core_Model_Design_Package
 {
 
     /**
@@ -23,6 +23,7 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
      * method isn't accurate when called in __construct to prevent this.
      *
      */
+/*
     public function getPackageName()
     {
         if (null === $this->_name) {
@@ -43,15 +44,16 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
                     }
                 } else {
                     # Do we have a variation with a theme?
-                    $variations = Mage::helper('abtest/visitor')->getVariationsFromObserver('*');
-
-                    # Note that only one test can run themes at a time, so upon 
-                    # the first theme test break the loop of tests on '*'
-                    foreach ($variations as $variation)
+                    if ($variations = Mage::helper('abtest/visitor')->getVariationsFromObserver('*'))
                     {
-                        if ($variation['theme']) {
-                            $this->setPackageName($variation['theme']);
-                            break;
+                        # Note that only one test can run themes at a time, so upon 
+                        # the first theme test break the loop of tests on '*'
+                        foreach ($variations as $variation)
+                        {
+                            if ($variation['theme']) {
+                                $this->setPackageName($variation['theme']);
+                                break;
+                            }
                         }
                     }
                 }
@@ -66,6 +68,7 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design_Package
 
         return $this->_name;
     }
+*/
 
     /**
      * Overrides the parent method to provide correct filenames to all 

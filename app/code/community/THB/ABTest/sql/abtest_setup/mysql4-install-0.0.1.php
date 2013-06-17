@@ -24,21 +24,30 @@ $installer->run("
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
     CREATE TABLE `{$installer->getTable('abtest/variation')}` (
-            `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-            `test_id` int(11) unsigned NOT NULL,
-            `is_control` tinyint(1) NOT NULL,
-            `name` varchar(50) DEFAULT NULL,
-            `layout_update` mediumtext,
-            `theme` varchar(255) DEFAULT NULL,
-            `split_percentage` tinyint(3) unsigned DEFAULT NULL,
-            `visitors` int(11) unsigned DEFAULT '0',
-            `views` int(11) unsigned DEFAULT '0',
-            `conversions` int(11) unsigned DEFAULT '0' COMMENT 'Denormalisation... We keep a running total here',
-            `conversion_rate` decimal(12,4) DEFAULT '0.0000',
-            `total_value` decimal(12,4) DEFAULT '0.0000',
-            `is_winner` tinyint(1) DEFAULT NULL,
-            PRIMARY KEY (`id`),
-            KEY `abtest_id` (`test_id`)
+        `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+        `test_id` int(11) unsigned NOT NULL,
+        `is_control` tinyint(1) NOT NULL,
+        `name` varchar(50) DEFAULT NULL,
+        `layout_update` mediumtext,
+        `package` varchar(255) DEFAULT NULL,
+        `package_exceptions` text,
+        `templates` varchar(255) DEFAULT NULL,
+        `templates_exceptions` text,
+        `skin` varchar(255) DEFAULT NULL,
+        `skin_exceptions` text,
+        `layout` varchar(255) DEFAULT NULL,
+        `layout_exceptions` text,
+        `default` varchar(255) DEFAULT NULL,
+        `default_exceptions` text,
+        `split_percentage` tinyint(3) unsigned DEFAULT NULL,
+        `visitors` int(11) unsigned DEFAULT '0',
+        `views` int(11) unsigned DEFAULT '0',
+        `conversions` int(11) unsigned DEFAULT '0' COMMENT 'Denormalisation... We keep a running total here',
+        `conversion_rate` decimal(12,4) DEFAULT '0.0000',
+        `total_value` decimal(12,4) DEFAULT '0.0000',
+        `is_winner` tinyint(1) DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        KEY `abtest_id` (`test_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
     create table `{$installer->gettable('abtest/conversion')}` (

@@ -64,7 +64,8 @@
 
 			<core>
 				<rewrite>
-					<design_package>THB_ABTest_Model_Overrides_Design</design_package>
+					<design_package>THB_ABTest_Model_Overrides_Design_Package</design_package>
+					<design>THB_ABTest_Model_Overrides_Design</design>
 				</rewrite>
 			</core>
 
