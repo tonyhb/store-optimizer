@@ -52,7 +52,7 @@ else
 fi
 
 # Delete the cookie file
-rm ".cookies.txt"
+rm -f ".cookies.txt"
 
 # Are we testing multiple versions?
 IFS=','
@@ -65,4 +65,4 @@ do
     fi
 done
 
-rm ".cookies.txt"
+rm -f ".cookies.txt"
