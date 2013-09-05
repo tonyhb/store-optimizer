@@ -9,12 +9,12 @@ class THB_ABTest_Block_Analytics extends Mage_Core_Block_Text
 
     public function _toHtml()
     {
+        $store_uenc = Mage::getStoreConfig('abtest/settings/store_uenc');
+
         # Don't output any Google Analytics tags if either the Google Analytics 
         # plugin hasn't been set up or the settings tell us not to.
         if (Mage::getStoreConfig('google/analytics/active') == 0 OR Mage::getStoreConfig('abtest/settings/analytics') == 0)
-            return;
-
-        $store_uenc = Mage::getStoreConfig('abtest/settings/store_uenc');
+            return "<script>var store_uenc = '$store_uenc';</script>";
 
         if (Mage::helper('abtest')->isRunning())
         {
@@ -30,7 +30,7 @@ class THB_ABTest_Block_Analytics extends Mage_Core_Block_Text
             $variations = array();
         }
 
-        $output = "var STORE_UENC = '$store_uenc';\r\n";
+        $output = "var store_uenc = '$store_uenc';\r\n";
         foreach ($variations as $variation) {
             if (isset($variation['test']['name']) && isset($variation['variation']['name'])) {
                 $output .= "_gaq.push(['_setCustomVar', {$custom_variable_slot}, '{$variation['test']['name']}', '{$variation['variation']['name']}', 2]);\r\n";
