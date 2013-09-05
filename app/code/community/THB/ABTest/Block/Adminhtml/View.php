@@ -24,7 +24,6 @@ class THB_ABTest_Block_Adminhtml_View extends Mage_Adminhtml_Block_Template
     {
         $children = array(
             'back'   => $this->getLayout()->createBlock('Mage_Adminhtml_Block_Widget_Button'),
-            'delete' => $this->getLayout()->createBlock('Mage_Adminhtml_Block_Widget_Button'),
         );
 
         $children['back']
@@ -32,10 +31,13 @@ class THB_ABTest_Block_Adminhtml_View extends Mage_Adminhtml_Block_Template
             ->setClass("back")
             ->setLabel("Back");
 
-        $children['delete']
-            ->setOnClick("confirmSetLocation('Are you sure you want to stop this test?', '".$this->getUrl('*/*/delete/id/'.$this->_test->getId())."')")
-            ->setClass("delete")
-            ->setLabel("Stop test");
+        if ($this->getTest()->getIsActive() != "0") {
+            $children["stop"] = $this->getLayout()->createBlock('Mage_Adminhtml_Block_Widget_Button');
+            $children['stop']
+                ->setOnClick("confirmSetLocation('Are you sure you want to stop this test?', '".$this->getUrl('*/*/stop/id/'.$this->_test->getId())."')")
+                ->setClass("delete")
+                ->setLabel("Stop test");
+        }
 
         $html = '';
         foreach($children as $button)

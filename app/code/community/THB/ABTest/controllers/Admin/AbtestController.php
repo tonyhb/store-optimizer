@@ -210,4 +210,18 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
         echo "<html><head><meta http-equiv='refresh' content='1;URL=\"$referrer\"'></head><body><script>window.close();</script><p style='font: 16px/1.5 Helvetica, Arial, sans-serif; text-align: center; margin-top: 100px'>Redirecting...</p></body>";
     }
 
+    public function stopAction()
+    {
+        if ($test_id = $this->getRequest()->getParam('id'))
+        {
+            $test = Mage::getModel('abtest/test')->load($test_id);
+            $test->setIsActive('0');
+            $test->save();
+            $this->_redirect('*/*/view', array('id' => $test->getId(), '_current' => true));
+            return;
+        }
+
+        $this->_redirect('*/*/');
+    }
+
 }

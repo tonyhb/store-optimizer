@@ -2,7 +2,7 @@
     <div class="content-header">
     <table cellspacing="0">
         <tbody><tr>
-        <td style="width:50%;"><h3 class="head-adminhtml">Test: <?php echo $this->getTest()->getName() ?></h3></td>
+        <td style="width:50%;"><h3 class="head-adminhtml">Test: <?php echo $this->getTest()->getName() ?> <?php if ($this->getTest()->getIsActive() == "0") { echo "(stopped)"; } ?></h3></td>
         <td class="form-buttons">
             <?php echo $this->getButtonHtml(); ?>
         </td>
