@@ -1,14 +1,21 @@
 <div>
     <div class="content-header">
-        <h3 class="icon-head head-adminhtml">New A/B Test</h3>
-        <p class="form-buttons">
-        <button title="Back" type="button" class="scalable back" onclick="setLocation('<?php echo $this->getUrl('*/*/index', array('_current'=>true, 'back'=>null)) ?>')" style=""><span>Back</span></button>
-            <button title="Reset" type="button" class="scalable " onclick="setLocation(window.location.href)" style=""><span>Reset</span></button>
-            <button title="Save" type="button" class="scalable save" onclick="abTestForm.submit();" style=""><span>Save</span></button>
-        </p>
+        <?php if ($this->getTest() == NULL): ?>
+            <h3 class="icon-head head-adminhtml">New A/B Test</h3>
+                <p class="form-buttons">
+                <button title="Back" type="button" class="scalable back" onclick="setLocation('<?php echo $this->getUrl('*/*/index', array('_current'=>true, 'back'=>null)) ?>')" style=""><span>Back</span></button>
+                <button title="Reset" type="button" class="scalable " onclick="setLocation(window.location.href)" style=""><span>Reset</span></button>
+                <button title="Save" type="button" class="scalable save" onclick="abTestForm.submit();" style=""><span>Save</span></button>
+                </p>
+        <?php else: ?>
+            <h3 class="icon-head head-adminhtml"><?php echo $this->getTest()->getName() ?></h3>
+            <p class="form-buttons">
+                <button title="Back" type="button" class="scalable back" onclick="setLocation('<?php echo $this->getUrl('*/*/view/id/'.$this->getTest()->getId(), array('_current'=>true, 'back'=>null)) ?>')" style=""><span>Back</span></button>
+            </p>
+        <?php endif; ?>
     </div>
     <div class="entry-edit">
-        <form id="abtest_form" action="<?php echo $this->getUrl('*/*/save', array('_current'=>true, 'back'=>null)); ?>" method="post" enctype="multipart/form-data">
+        <form id="abtest_form" <?php if ($this->getTest() == NULL): ?> action="<?php echo $this->getUrl('*/*/save', array('_current'=>true, 'back'=>null)); ?>" method="post" enctype="multipart/form-data" <?php endif; ?>>
             <?php echo $this->getBlockHtml('formkey')?>
         </form>
     </div>
@@ -17,14 +24,27 @@
         abTestForm.validationUrl = '<?php echo $this->getUrl('*/*/validate'); ?>';
         (function(d) {
             var abTest = {
-                cohorts: 2,
+                <?php if($this->getTest()): ?>
+                    cohorts: <?php echo count($this->getVariationCollection()) ?>,
+                <?php else: ?>
+                    cohorts: 2,
+                <?php endif; ?>
                 controlTraffic: 70,
 
                 init: function() {
                     // Hide variant A/B/C tabs
-                    $('abtest_form_tabs_cohort_3').hide();
-                    $('abtest_form_tabs_cohort_4').hide();
-                    $('abtest_form_tabs_cohort_5').hide();
+                    var i = abTest.cohorts + 1;
+                    while (i <= 5) {
+                        $('abtest_form_tabs_cohort_' + i).hide();
+                        i++;
+                    }
+
+                    <?php if($this->getTest()): ?>
+                        // Disable all form fields
+                        Event.observe(window, 'load', function() {
+                            $("abtest_form").disable();
+                        });
+                    <?php endif; ?>
 
                     // Observe the target event dropdown so we can change the 
                     // input text value

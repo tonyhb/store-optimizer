@@ -1,3 +1,10 @@
+<?php 
+ /**
+  * It would have been a bit easier to have used Magento's form generator 
+  * methods for this, alas, it's done now, it looks good, and it's perfectly 
+  * functional. Plus, I personally think all form generators are terrible.
+  */
+?>
 <div class="entry-edit-head">
     <h4 class="icon-head head-edit-form fieldset-legend">Date settings</h4>
     <div class="form-buttons"></div>
@@ -10,13 +17,13 @@
             <tr>
                 <td class="label"><label for="el_test_name">Name <span class="required">*</span></label></td>
                 <td class="value">
-                    <input type="text" name="test[name]" id="el_test_name" value="" class="required-entry input-text" />
+                    <input type="text" name="test[name]" id="el_test_name" value="<?php echo $this->getTest()->getName() ?>" class="required-entry input-text" />
                 </td>
             </tr>
             <tr>
                 <td class="label"><label for="el_start_date">Start date <span class="required">*</span></label></td>
                 <td class="value">
-                <input name="test[start_date]" id="el_start_date" value="<?php echo Date("j M, Y", time()); ?>" style="width: 200px" type="text" class=" required-entry input-text"> <img src="<?php echo $this->getSkinUrl() ?>images/grid-cal.gif" alt="" class="v-middle" id="el_start_date_trig" title="Select Date" style="">
+                <input name="test[start_date]" id="el_start_date" value="<?php echo $this->getStartDate(); ?>" style="width: 200px" type="text" class=" required-entry input-text"> <img src="<?php echo $this->getSkinUrl() ?>images/grid-cal.gif" alt="" class="v-middle" id="el_start_date_trig" title="Select Date" style="">
                     <script type="text/javascript">
                     //<![CDATA[
                         Calendar.setup({
@@ -34,7 +41,7 @@
             <tr>
                 <td class="label"><label for="el_end_date">End date</label></td>
                 <td class="value">
-                <input name="test[end_date]" id="el_end_date" value="" style="width: 200px" type="text" class=" input-text"> <img src="<?php echo $this->getSkinUrl() ?>images/grid-cal.gif" alt="" class="v-middle" id="el_end_date_trig" title="Select Date" style="">
+                <input name="test[end_date]" id="el_end_date" value="<?php echo $this->getTest()->getEndDate(); ?>" style="width: 200px" type="text" class=" input-text"> <img src="<?php echo $this->getSkinUrl() ?>images/grid-cal.gif" alt="" class="v-middle" id="el_end_date_trig" title="Select Date" style="">
                     <script type="text/javascript">
                     //<![CDATA[
                         Calendar.setup({
@@ -68,32 +75,36 @@
                 <td class="value">
                     <select id="el_observer_select" name="target_observer_select" style="width: 300px" class=" required-entry select">
                         <optgroup label="All">
-                            <option value="*">All pages</option>
+                            <option value="*" <?php if ($this->getTest()->getObserverTarget() == "*") echo 'selected="selected"'; ?>>All pages</option>
                         </optgroup>
                         <optgroup label="Catalog">
-                            <option value="catalog_category_view">Category page</option>
-                            <option value="catalog_product_view">Product page</option>
+                            <option value="catalog_category_view" <?php if ($this->getTest()->getObserverTarget() == "catalog_category_view") echo 'selected="selected"'; ?>>Category page</option>
+                            <option value="catalog_product_view" <?php if ($this->getTest()->getObserverTarget() == "catalog_product_view") echo 'selected="selected"'; ?>>Product page</option>
                         </optgroup>
                         <optgroup label="Checkout">
-                            <option value="checkout_cart_index">Cart overview page</option>
-                            <option value="checkout_onepage_index">One-Page Checkout</option>
+                            <option value="checkout_cart_index" <?php if ($this->getTest()->getObserverTarget() == "checkout_cart_index") echo 'selected="selected"'; ?>>Cart overview page</option>
+                            <option value="checkout_onepage_index" <?php if ($this->getTest()->getObserverTarget() == "checkout_onepage_index") echo 'selected="selected"'; ?>>One-Page Checkout</option>
                         </optgroup>
                         <optgroup label="CMS">
-                            <option value="cms_page_view">CMS page</option>
-                            <option value="cms_index_index">Home page</option>
+                            <option value="cms_page_view" <?php if ($this->getTest()->getObserverTarget() == "cms_page_view") echo 'selected="selected"'; ?>>CMS page</option>
+                            <option value="cms_index_index" <?php if ($this->getTest()->getObserverTarget() == "cms_index_index") echo 'selected="selected"'; ?>>Home page</option>
                         </optgroup>
                         <optgroup label="Other">
-                            <option value="wishlist_index_index">Wishlist</option>
-                            <option value="custom">Custom</option>
+                            <option value="wishlist_index_index" <?php if ($this->getTest()->getObserverTarget() == "wishlist_index_index") echo 'selected="selected"'; ?>>Wishlist</option>
+                            <option value="custom" <?php if ($this->isTestObserverCustom()) echo 'selected="selected"'; ?>>Custom</option>
                         </optgroup>
                     </select>
                     <p class="note" id="note_el_observer_select"><span>Limits layout updates to only these pages</span></p>
                 </td>
             </tr>
-            <tr id="advanced" style='display:none'>
+            <tr id="advanced" <?php if ( ! $this->isTestObserverCustom()) echo "style='display:none'"; ?>>
                 <td class="label"></td>
                 <td class="value" style="width:350px">
-                    <input type="text" name="test[observer_target]" id="el_observer_target" value="*" class="required-entry input-text" style='border: 1px solid #ddd; color: #888; padding: 3px 8px; width: 282px; margin-bottom: 5px;' />
+                    <?php if ($this->isTestObserverCustom()): ?>
+                    <input type="text" name="test[observer_target]" id="el_observer_target" value="<?php echo $this->getTest()->getObserverTarget(); ?>" class="required-entry input-text" style='border: 0px solid #ddd; color: #888; padding: 3px 8px; width: 282px; margin-bottom: 5px;' />
+                    <?php else: ?>
+                        <input type="text" name="test[observer_target]" id="el_observer_target" value="*" class="required-entry input-text" style='border: 1px solid #ddd; color: #888; padding: 3px 8px; width: 282px; margin-bottom: 5px;' />
+                    <?php endif; ?>
                     <p class="note" style="width: 360px"><span>The test page action, in the format of &nbsp;<span style='font-family:monospace'>Module_Controller_Action</span></span></p>
                 </td>
             </tr>
@@ -102,13 +113,13 @@
                 <td class="value">
                     <select id="el_conversion_observer" name="test[observer_conversion]" style="width: 300px" class=" required-entry select">
                         <optgroup label="Action">
-                            <option value="checkout_cart_add_product_complete">Added product to cart</option>
-                            <option value="wishlist_add_product">Added product to wishlist</option>
-                            <option value="checkout_onepage_controller_success_action">Completed checkout (purchased via one-page checkout)</option>
-                            <option value="sendfriend_product">Sent product to friend</option>
+                        <option <?php if ($this->getTest()->getObserverConversion() == "checkout_cart_add_product_complete") echo 'selected="selected"'; ?>value="checkout_cart_add_product_complete">Added product to cart</option>
+                        <option <?php if ($this->getTest()->getObserverConversion() == "wishlist_add_product") echo 'selected="selected"'; ?>value="wishlist_add_product">Added product to wishlist</option>
+                        <option <?php if ($this->getTest()->getObserverConversion() == "checkout_onepage_controller_success_action") echo 'selected="selected"'; ?>value="checkout_onepage_controller_success_action">Completed checkout (purchased via one-page checkout)</option>
+                        <option <?php if ($this->getTest()->getObserverConversion() == "sendfriend_product") echo 'selected="selected"'; ?>value="sendfriend_product">Sent product to friend</option>
                         </optgroup>
                         <optgroup label="View">
-                            <option value="catalog_controller_product_view">Product viewed</option>
+                            <option <?php if ($this->getTest()->getObserverConversion() == "catalog_controller_product_view") echo 'selected="selected"'; ?> value="catalog_controller_product_view">Product viewed</option>
                         </optgroup>
                     </select>
                 </td>
@@ -116,11 +127,12 @@
             <tr>
                 <td class="label"><label for="el_cohorts">Variations <span class="required">*</span></label></td>
                 <td class="value">
+                    <?php $collection = $this->getVariationCollection(); ?>
                     <select id="el_cohorts" name="cohorts" style="width: 300px" class=" required-entry select">
-                        <option value="2">1</option>
-                        <option value="3">2</option>
-                        <option value="4">3</option>
-                        <option value="5">4</option>
+                        <option <?php if (count($collection) == 2) echo 'selected="selected"'; ?>value="2">1</option>
+                        <option <?php if (count($collection) == 3) echo 'selected="selected"'; ?>value="3">2</option>
+                        <option <?php if (count($collection) == 4) echo 'selected="selected"'; ?>value="4">3</option>
+                        <option <?php if (count($collection) == 5) echo 'selected="selected"'; ?>value="5">4</option>
                     </select>
                 </td>
             </tr>
@@ -128,8 +140,8 @@
                 <td class="label"><label for="el_control_traffic">Only test variations with new visitors?</label></td>
                 <td class="value">
                     <select id="el_target_new_visitors" name="test[only_test_new_visitors]" style="width: 300px" class=" required-entry select">
-                        <option value="1">Yes</option>
-                        <option value="0" selected="selected">No</option>
+                        <option <?php if ($this->getTest()->getOnlyTestNewVisitors() == '1') echo 'selected="selected"'; ?> value="1">Yes</option>
+                        <option value="0" <?php if ( ! $this->getTest()->getOnlyTestNewVisitors() == '1') echo 'selected="selected"'; ?>>No</option>
                     </select>
                     <p class="note"><span>Helps provide more accurate results, but will skew the amount of traffic going to each variation.</span></p>
                 </td>
@@ -137,8 +149,14 @@
             <tr>
                 <td class="label"><label for="el_control_traffic">Control traffic percentage <span class="required">*</span></label></td>
                 <td class="value">
+                <?php if (count($collection) > 0): ?>
+                    <!-- Find the saved test control's traffic -->
+                    <input type="text" name="el_control_traffic" id="el_control_traffic" value="<?php echo $collection->getFirstItem()->getSplitPercentage(); ?>" class="required-entry input-text" style="width:2.5em" /> % &nbsp;<a href="#" id="split_traffic_evenly">(split evenly)</a>
+                    <p class="note" id="note_el_control_traffic"><span>Other variations get <b><?php echo $collection->getLastItem()->getSplitPercentage(); ?>%</b> of the traffic</span></p>
+                <?php else: ?>
                     <input type="text" name="el_control_traffic" id="el_control_traffic" value="70" class="required-entry input-text" style="width:2.5em" /> % &nbsp;<a href="#" id="split_traffic_evenly">(split evenly)</a>
                     <p class="note" id="note_el_control_traffic"><span>The variation gets <b>30%</b> of the traffic</span></p>
+                <?php endif; ?>
                 </td>
             </tr>
         </tbody>

@@ -23,13 +23,19 @@ class THB_ABTest_Block_Adminhtml_View extends Mage_Adminhtml_Block_Template
     public function getButtonHtml()
     {
         $children = array(
-            'back'   => $this->getLayout()->createBlock('Mage_Adminhtml_Block_Widget_Button'),
+            "back"   => $this->getLayout()->createBlock("Mage_Adminhtml_Block_Widget_Button"),
+            "view"   => $this->getLayout()->createBlock("Mage_Adminhtml_Block_Widget_Button"),
         );
 
         $children['back']
             ->setOnClick("setLocation('".$this->getUrl('*/*/index')."')")
             ->setClass("back")
             ->setLabel("Back");
+
+        $children['view']
+            ->setOnClick("setLocation('".$this->getUrl('*/*/settings/id/'.$this->_test->getId())."')")
+            ->setClass("view")
+            ->setLabel("View");
 
         if ($this->getTest()->getIsActive() != "0") {
             $children["stop"] = $this->getLayout()->createBlock('Mage_Adminhtml_Block_Widget_Button');

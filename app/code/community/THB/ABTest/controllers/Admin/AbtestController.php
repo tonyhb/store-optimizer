@@ -18,7 +18,7 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
      */
     protected function _init()
     {
-        $this->loadLayout()->_setActiveMenu('catalog/abtest');
+        $this->loadLayout()->_setActiveMenu('abtest');
         return $this;
     }
 
@@ -82,6 +82,10 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
         {
             try
             {
+                if ($data["test"]["end_date"] == "-") {
+                    unset($data["test"]["end_date"]);
+                }
+
                 $test = Mage::getModel('abtest/test')->addData($data['test']);
                 $test->save();
 
@@ -220,5 +224,18 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
 
         $this->_redirect('*/*/');
     }
+
+    public function settingsAction()
+    {
+        $test = Mage::getModel('abtest/test')->load($this->getRequest()->getParam('id'));
+        $variations = $test->getVariationCollection();
+
+        $this->_init()
+            ->_addLeft($this->getLayout()->createBlock('abtest/adminhtml_tabs')->setTest($test)->setVariationCollection($variations))
+            ->_addContent($this->getLayout()->createBlock('abtest/adminhtml_form')->setTest($test)->setVariationCollection($variations))
+            ->_title($test->getName())
+            ->renderLayout();
+    }
+
 
 }
