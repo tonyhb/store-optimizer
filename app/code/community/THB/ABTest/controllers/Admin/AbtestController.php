@@ -114,12 +114,6 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
      */
     public function validateAction()
     {
-        header("Content-Type: application/json");
-        header("HTTP/1.0 400 Bad Request");
-
-        ini_set('display_errors', 1);
-        error_reporting(E_ALL);
-
         $errors = array();
         $valid  = TRUE;
         $data   = $this->getRequest()->getPost();
