@@ -93,6 +93,9 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
                     $variations++;
                     $model = Mage::getModel('abtest/variation')->setData($variation);
                     $model->setTestId((int) $test->getId());
+                    if ($variations == 1) {
+                        $model->setIsControl(true);
+                    }
                     $model->save();
                 }
 
