@@ -107,15 +107,11 @@
 
 	<adminhtml>
 		<menu>
-			<catalog>
-				<children>
-					<abtest translate="title" module="abtest">
-						<title>Manage A/B Tests</title>
-						<action>adminhtml/abtest</action>
-						<sort_order>16</sort_order>
-					</abtest>
-				</children>
-			</catalog>
+			<abtest translate="title" module="abtest">
+				<title>A/B Tests</title>
+				<action>adminhtml/abtest</action>
+				<sort_order>33</sort_order>
+			</abtest>
 		</menu>
 
 		<layout>
@@ -131,6 +127,10 @@
 			<resources>
 				<admin>
 					<children>
+						<abtest translate="title" module="abtest">
+							<title>Manage A/B Tests</title>
+							<sort_order>33</sort_order>
+						</abtest>
 						<system>
 							<children>
 								<config>
