@@ -43,6 +43,9 @@
                         // Disable all form fields
                         Event.observe(window, 'load', function() {
                             $("abtest_form").disable();
+                            $$('.preview-variation').each(function(el) {
+                                $(el).enable();
+                            });
                         });
                     <?php endif; ?>
 
