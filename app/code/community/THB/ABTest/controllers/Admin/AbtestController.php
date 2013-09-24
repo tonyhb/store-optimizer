@@ -182,14 +182,14 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
         else if ($post = $this->getRequest()->getPost())
         {
             $data = $post['cohort'][$post['used_cohort']]; # Get the used cohort's data
-            $data += array(
+            $data = array_merge(array(
                 'init_at'        => date('Y-m-d H:i:s'),
                 'observer'       => $post['test']['observer_target'],
                 'is_control'     => (bool) $post['is_control'],
                 'test_name'      => $post['test']['name'],
                 'running'        => FALSE, # This is run from the create test page, so the test isn't running already
                 'key'            => Mage::getSingleton('core/session')->getFormKey(),
-            );
+            ), $data);
         }
 
         $data = Mage::helper('core')->jsonEncode($data);
