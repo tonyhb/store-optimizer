@@ -5,6 +5,10 @@ class THB_ABTest_Model_Overrides_Design extends Mage_Core_Model_Design
 
     public function loadChange($storeId, $date = null)
     {
+        if (Mage::helper('abtest/bots')->isBot()) {
+            return parent::loadChange($storeId, $date);
+        }
+
         # First, we need to assign variations. This is because if 
         # a visitor hasn't been to our website yet, they're NOT in 
         # a cohort - this gets called first. If the visitor gets 
