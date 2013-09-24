@@ -29,7 +29,7 @@ casper.thenOpen magento + "admin", ->
     @fill "form#loginForm", { "login[username]": username, "login[password]": password }, true
 casper.then ->
     @test.assertTitle "Dashboard / Magento Admin", "We logged in to the dashboard successfully"
-    @clickLabel("Manage A/B Tests")
+    @clickLabel("A/B Tests")
 casper.then ->
     @test.assertTitle "Manage A/B Tests / Magento Admin", "We're on the 'Manage A/B tests' page"
     @clickLabel("New A/B Test")
