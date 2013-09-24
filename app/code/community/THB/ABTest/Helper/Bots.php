@@ -41,7 +41,7 @@ class THB_ABTest_Helper_Bots extends Mage_Core_Helper_Data {
         # False by default, and only overwritten below.
         self::$_is_bot = FALSE;
 
-        $bots = array('googlebot', 'msnbot', 'slurp', 'ask jeeves', 'crawl', 'ia_archiver', 'lycos', 'rogerbot', 'SEO');
+        $bots = array('googlebot', 'msnbot', 'slurp', 'ask jeeves', 'crawl', 'ia_archiver', 'lycos', 'rogerbot', 'SEO', 'MJ12bot');
         foreach($bots as $botname)
         {
             if(stripos($_SERVER['HTTP_USER_AGENT'], $botname) !== FALSE)
