@@ -102,6 +102,12 @@
 			<abtest>
 				<class>THB_ABTest_Block</class>
 			</abtest>
+
+			<core>
+				<rewrite>
+					<template>THB_ABTest_Block_Overrides_Template</template>
+				</rewrite>
+			</core>
 		</blocks>
 	</global>
 
