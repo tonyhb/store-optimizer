@@ -173,7 +173,14 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
 
             # We have got a GET parameter which ensures a visitor gets a particular 
             # version (useful for client links).
-            $this->_assignVariation($test_data['id'], $_GET['__t_'.$test_data['id']]);
+            foreach ($variations as $variation)
+            {
+                if ($variation["id"] == $_GET['__t_'.$test_data['id']])
+                {
+                    $this->_assignVariation($test_data['id'], $variation["id"], $test_data["name"], $variation["name"], (bool) $variation["is_control"]);
+                    break;
+                }
+            }
         }
         else
         {
