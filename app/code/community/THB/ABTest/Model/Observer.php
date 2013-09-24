@@ -37,6 +37,10 @@ class THB_ABTest_Model_Observer {
      */
     public function run_target_event($observer, $event_name = NULL)
     {
+        if (Mage::helper('abtest/bots')->isBot()) {
+            return;
+        }
+
         # If we're previewing layout update XML we need to skip loading 
         # a variation. This will return FALSE and run the inner block if there's 
         # no preview.
