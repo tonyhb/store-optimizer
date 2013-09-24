@@ -98,7 +98,7 @@ class THB_ABTest_Model_Observer {
         # Add Google Analytics integration, if need be. This is controlled by 
         # the settings in the configuration panel - the block will not output 
         # anything if the integration is disabled.
-        $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="before_body_end"><block name="abtest_ga" type="abtest/analytics" /></reference><reference name="head"><action method="addJs"><script>abtest/abtest.core.js</script></action></reference>');
+        $observer->getEvent()->getLayout()->getUpdate()->addUpdate('<reference name="before_body_end"><block name="abtest_ga" type="abtest/analytics" /></reference>');
 
         # Add the preview bar, if need be.
         if ($data = Mage::getSingleton('core/cookie')->get('test_preview'))
