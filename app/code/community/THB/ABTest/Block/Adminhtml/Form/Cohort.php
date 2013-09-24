@@ -118,6 +118,8 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
         # Uset when getting the data on a view form
         # $model = Mage::getModel("adminhtml/system_config_backend_serialized_array");
 
+        # This is very ugly. Magento forms suck, expecially regex blocks.
+        # Sorry.
         $fieldset->addField("cohort_".$this->getCohort()."_package-field", "text", array(
             "label"    => $this->__("Package name"),
             "name"     => "cohort[".$this->getCohort()."][package]",
@@ -126,7 +128,7 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
         $field = $fieldset->addField("cohort_".$this->getCohort()."_package_exceptions-field", "text", array(
             "name"     => "cohort[".$this->getCohort()."][package_exceptions]",
             "comment"  => $this->__("Match expressions in the same order as displayed in the configuration."),
-            "value"    => array_filter(unserialize($this->getVariation()->getPackageExceptions())),
+            "value"    => $this->_getPackageExceptions(),
         ));
         $field->setRenderer($regex_renderer);
 
@@ -137,7 +139,7 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
         ));
         $field = $fieldset->addField("cohort_".$this->getCohort()."_templates_exceptions-field", "text", array(
             "name"     => "cohort[".$this->getCohort()."][templates_exceptions]",
-            "value"    => array_filter(unserialize($this->getVariation()->getTemplatesExceptions())),
+            "value"    => $this->_getTemplateExceptions(),
         ));
         $field->setRenderer($regex_renderer);
 
@@ -148,7 +150,7 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
         ));
         $field = $fieldset->addField("cohort_".$this->getCohort()."_skin_exceptions-field", "text", array(
             "name"     => "cohort[".$this->getCohort()."][skin_exceptions]",
-            "value"    => array_filter(unserialize($this->getVariation()->getSkinExceptions())),
+            "value"    => $this->_getSkinExceptions(),
         ));
         $field->setRenderer($regex_renderer);
 
@@ -159,7 +161,7 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
         ));
         $field = $fieldset->addField("cohort_".$this->getCohort()."_layout_exceptions-field", "text", array(
             "name"     => "cohort[".$this->getCohort()."][layout_exceptions]",
-            "value"    => array_filter(unserialize($this->getVariation()->getLayoutExceptions())),
+            "value"    => $this->_getLayoutExceptions(),
         ));
         $field->setRenderer($regex_renderer);
 
@@ -170,11 +172,91 @@ class THB_ABTest_Block_Adminhtml_Form_Cohort extends Mage_Adminhtml_Block_Widget
         ));
         $field = $fieldset->addField("cohort_".$this->getCohort()."_default_exceptions-field", "text", array(
             "name"     => "cohort[".$this->getCohort()."][default_exceptions]",
-            "value"    => array_filter(unserialize($this->getVariation()->getDefaultExceptions())),
+            "value"    => $this->_getDefaultExceptions(),
         ));
         $field->setRenderer($regex_renderer);
 
         return $this;
+    }
+
+    /**
+     * Helper method for regex fields in _addThemeFieldset
+     * Returns Package Exceptions array
+     *
+     * @return array
+     */
+    protected function _getPackageExceptions() {
+        if ( $exceptions = unserialize($this->getVariation()->getPackageExceptions())) {
+            $exceptions = array_filter($exceptions);
+        } else {
+            $exceptions = array();
+        }
+
+        return $exceptions;
+    }
+
+    /**
+     * Helper method for regex fields in _addThemeFieldset
+     * Returns Skin Exceptions array
+     *
+     * @return array
+     */
+    protected function _getSkinExceptions() {
+        if ( $exceptions = unserialize($this->getVariation()->getSkinExceptions())) {
+            $exceptions = array_filter($exceptions);
+        } else {
+            $exceptions = array();
+        }
+
+        return $exceptions;
+    }
+
+    /**
+     * Helper method for regex fields in _addThemeFieldset
+     * Returns Layout Exceptions array
+     *
+     * @return array
+     */
+    protected function _getLayoutExceptions() {
+        if ( $exceptions = unserialize($this->getVariation()->getLayoutExceptions())) {
+            $exceptions = array_filter($exceptions);
+        } else {
+            $exceptions = array();
+        }
+
+        return $exceptions;
+    }
+
+    /**
+     * Helper method for regex fields in _addThemeFieldset
+     * Returns Default Exceptions array
+     *
+     * @return array
+     */
+    protected function _getDefaultExceptions() {
+        if ( $exceptions = unserialize($this->getVariation()->getDefaultExceptions())) {
+            $exceptions = array_filter($exceptions);
+        } else {
+            $exceptions = array();
+        }
+
+        return $exceptions;
+    }
+
+    /**
+     * Helper method for regex fields in _addThemeFieldset
+     * Returns Template Exceptions array
+     *
+     * @return array
+     */
+    protected function _getTemplateExceptions() {
+        if ( $exceptions = unserialize($this->getVariation()->getTemplateExceptions())) {
+            $exceptions = array_filter($exceptions);
+        } else {
+            $exceptions = array();
+        }
+
+        return $exceptions;
     }
 
 }
