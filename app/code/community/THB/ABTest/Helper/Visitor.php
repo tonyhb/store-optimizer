@@ -88,7 +88,7 @@ class THB_ABTest_Helper_Visitor extends Mage_Core_Helper_Data
      */
     public function assignVariations()
     {
-        if (self::$_has_assigned == TRUE)
+        if (self::$_has_assigned == TRUE || Mage::helper('abtest/bots')->isBot())
         {
             return;
         }
