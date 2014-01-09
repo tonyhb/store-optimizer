@@ -16,7 +16,7 @@
 <config>
 	<modules>
 		<THB_ABTest>
-			<version>0.0.1</version>
+			<version>0.0.2</version>
 		</THB_ABTest>
 	</modules>
 

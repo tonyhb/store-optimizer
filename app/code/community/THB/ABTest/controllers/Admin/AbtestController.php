@@ -29,6 +29,12 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
      */
     public function indexAction()
     {
+        $version = Mage::getConfig()->getModuleConfig("THB_ABTest")->version;
+        if ($version != "0.0.2")
+        {
+            Mage::getSingleton('core/session')->addError('The Store Optimizer extension has been upgraded. Please clean your cache to keep your site working!');
+        }
+
         $this->_init()
             ->_addContent($this->getLayout()->createBlock('abtest/adminhtml_list_grid_container'))
             ->_title("Manage A/B Tests")
@@ -87,6 +93,15 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
                 }
 
                 $test = Mage::getModel('abtest/test')->addData($data['test']);
+
+                # If the start date is in the future, this should be paused 
+                # - allowing the user to start it early, if they want.
+                $today = strtotime('today');
+                $start_date = strtotime($data['test']['start_date']);
+                if ($start_date > $today) {
+                    $test->setStatus(0);
+                }
+
                 $test->save();
 
                 $variations = 0;
@@ -215,14 +230,33 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
     {
         if ($test_id = $this->getRequest()->getParam('id'))
         {
-            $test = Mage::getModel('abtest/test')->load($test_id);
-            $test->setIsActive('0');
-            $test->save();
-            $this->_redirect('*/*/view', array('id' => $test->getId(), '_current' => true));
+            # Set the status to '2' - Manually Stopped.
+            $this->_changeStatus($test_id, 2);
+            $this->_redirect('*/*/view', array('id' => $test_id, '_current' => true));
             return;
         }
 
         $this->_redirect('*/*/');
+    }
+
+    public function startAction()
+    {
+        if ($test_id = $this->getRequest()->getParam('id'))
+        {
+            # Set the status to '1' - Running.
+            $this->_changeStatus($test_id, 1);
+            $this->_redirect('*/*/view', array('id' => $test_id, '_current' => true));
+            return;
+        }
+        $this->_redirect('*/*/');
+    }
+
+
+    protected function _changeStatus($test_id, $status)
+    {
+        $test = Mage::getModel('abtest/test')->load($test_id);
+        $test->setStatus($status);
+        $test->save();
     }
 
     public function settingsAction()

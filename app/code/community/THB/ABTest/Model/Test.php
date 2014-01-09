@@ -30,13 +30,13 @@ class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
      */
     public function getTestStatus()
     {
-        if ($this->getData('is_active') == 1)
-        {
-            return 'Running';
-        }
-        else
-        {
-            return 'Stopped';
+        switch ($this->getData('status')) {
+            case 0:
+                return 'Stopped';
+            case 1:
+                return 'Running';
+            case 2:
+                return 'Paused';
         }
     }
 
@@ -107,7 +107,7 @@ class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
         # Is there a test with the action event running already?
         $other_tests = Mage::getModel('abtest/test')
             ->getCollection()
-            ->addFieldToFilter('is_active', 1)
+            ->addFieldToFilter('status', 1)
             ->addFieldToFilter('observer_target', $this->getData('observer_target'))
             ->getSize();
         if ($other_tests > 0)

@@ -16,9 +16,27 @@ class THB_ABTest_Model_Mysql4_Test_Collection extends Mage_Core_Model_Mysql4_Col
      */
     public static function getActiveTests()
     {
+
         $read = Mage::getSingleton('core/resource')->getConnection('core/read');
         $table = Mage::getSingleton('core/resource')->getTableName('abtest/test');
-        $all_tests = $read->fetchAll('SELECT * FROM '.$table.' WHERE (end_date >= '.date("Y-m-d").' OR end_date IS NULL) AND is_active = 1 ORDER BY id ASC');
+
+        # We're going to check the version of Store Optimiser and run the 
+        # correct SQL query. Even though Magento **should** have upgraded to the 
+        # latest version, if the cache wasn't cleared it won't have - and the 
+        # SQL will be wrong.
+        #
+        # This ensures that your website doens't break when you're upgrading 
+        # the extension.
+        $version = Mage::getConfig()->getModuleConfig("THB_ABTest")->version;
+        if ($version == '0.0.1')
+        {
+            $all_tests = $read->fetchAll('SELECT * FROM '.$table.' WHERE (end_date >= '.date("Y-m-d").' OR end_date IS NULL) AND is_active = 1 ORDER BY id ASC');
+        }
+        else
+        {
+            $all_tests = $read->fetchAll('SELECT * FROM '.$table.' WHERE (end_date >= '.date("Y-m-d").' OR end_date IS NULL) AND status = 1 ORDER BY id ASC');
+        }
+
 
         if (empty($all_tests))
             return array();

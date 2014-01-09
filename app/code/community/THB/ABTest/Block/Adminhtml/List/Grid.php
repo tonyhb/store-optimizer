@@ -19,11 +19,11 @@ class THB_ABTest_Block_Adminhtml_List_Grid extends Mage_Adminhtml_Block_Widget_G
     {
         $helper = Mage::helper('core/data');
 
-        $this->addColumn('is_active', array(
+        $this->addColumn('status', array(
             'header' => $helper->__('Status'),
             'align'  => 'left',
             'width'  => '75px',
-            'index'  => 'is_active',
+            'index'  => 'status',
             # Uses the getTestStatus method which allows us to use 
             # non-database data in our grid
             'getter' => 'getTestStatus',
