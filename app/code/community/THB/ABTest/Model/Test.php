@@ -143,7 +143,7 @@ class THB_ABTest_Model_Test extends THB_ABTest_Model_Abstract {
         $this->setData("start_date", date("Y-m-d", $start_date));
 
         // We only need to do end dates if they are provided.
-        if ($start_date = $this->getData("end_date"))
+        if ($end_date = $this->getData("end_date"))
         {
             $end_date = strtotime($end_date);
             $this->setData("end_date", date("Y-m-d", $end_date));
