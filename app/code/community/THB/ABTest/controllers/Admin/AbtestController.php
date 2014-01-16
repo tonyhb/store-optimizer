@@ -103,6 +103,8 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
                 $start_date = strtotime($data['test']['start_date']);
                 if ($start_date > $today) {
                     $test->setStatus(0);
+                } else {
+                    $test->setStatus(1);
                 }
 
                 $test->save();
