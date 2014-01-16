@@ -47,10 +47,10 @@ class THB_ABTest_Block_Adminhtml_Form_Settings extends Mage_Adminhtml_Block_Temp
     public function getStartDate()
     {
         if ($this->getTest()->getStartDate() == NULL) {
-            return Date("j M, Y", time());
+            return Date("j M Y", time());
         }
 
-        return Date("j M, Y", strtotime($this->getTest()->getStartDate()));
+        return Date("j M Y", strtotime($this->getTest()->getStartDate()));
     }
 
     public function isTestObserverCustom()

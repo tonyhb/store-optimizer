@@ -88,6 +88,9 @@ class THB_ABTest_Admin_ABTestController extends Mage_Adminhtml_Controller_Action
         {
             try
             {
+                $data["test"]["start_date"] = str_replace(",", "", $data["test"]["start_date"]);
+                $data["test"]["end_date"] = str_replace(",", "", $data["test"]["end_date"]);
+
                 if ($data["test"]["end_date"] == "-") {
                     unset($data["test"]["end_date"]);
                 }
