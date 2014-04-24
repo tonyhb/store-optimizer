@@ -115,6 +115,7 @@
                         <optgroup label="Action">
                         <option <?php if ($this->getTest()->getObserverConversion() == "checkout_cart_add_product_complete") echo 'selected="selected"'; ?>value="checkout_cart_add_product_complete">Added product to cart</option>
                         <option <?php if ($this->getTest()->getObserverConversion() == "wishlist_add_product") echo 'selected="selected"'; ?>value="wishlist_add_product">Added product to wishlist</option>
+                        <option <?php if ($this->getTest()->getObserverConversion() == "newsletter_subscriber_save_commit_after") echo 'selected="selected"'; ?>value="newsletter_subscriber_save_commit_after">Visitor Subscribed to newsletter</option>
                         <option <?php if ($this->getTest()->getObserverConversion() == "checkout_onepage_controller_success_action") echo 'selected="selected"'; ?>value="checkout_onepage_controller_success_action">Completed checkout (purchased via one-page checkout)</option>
                         <option <?php if ($this->getTest()->getObserverConversion() == "sendfriend_product") echo 'selected="selected"'; ?>value="sendfriend_product">Sent product to friend</option>
                         </optgroup>

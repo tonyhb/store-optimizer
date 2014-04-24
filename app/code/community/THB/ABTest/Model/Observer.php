@@ -156,6 +156,27 @@ class THB_ABTest_Model_Observer {
     }
 
     /**
+     * Registers a conversion when a visitor subscribes to the newsletter
+     *
+     */
+    public function conversion_newsletter_subscribe($observer)
+    {
+        # This runs every time a visitor subscribes, regardless of whether or not
+        # an AB test is running.
+        if ( ! Mage::helper('abtest')->isRunning())
+            return;
+
+        if ($variations = Mage::helper('abtest/visitor')->getVariationsFromObserver($observer->getEvent()->getName(), 'observer_conversion'))
+        {
+            foreach ($variations as $variation)
+            {
+                # Get our table name for variations and update the row information
+                $this->_register_conversion($variation, 0); // send 0 price value for conversion
+            }
+        }
+    }
+
+    /**
      * Registers a conversion when a product is sent to a friend
      *
      */
