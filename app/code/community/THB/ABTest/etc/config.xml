@@ -211,6 +211,16 @@
 				</observers>
 			</wishlist_add_product>
 
+            <newsletter_subscriber_save_commit_after>
+                <observers>
+                    <abtest>
+                        <type>singleton</type>
+                        <class>abtest/observer</class>
+                        <method>conversion_newsletter_subscribe</method>
+                    </abtest>
+                </observers>
+            </newsletter_subscriber_save_commit_after>
+
 			<sendfriend_product>
 				<observers>
 					<abtest>
